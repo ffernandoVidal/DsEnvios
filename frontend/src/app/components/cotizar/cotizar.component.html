@@ -1,0 +1,248 @@
+<div class="page-container">
+  <div class="cotizar-header">
+    <h1>Cotizar Envío</h1>
+    <p class="subtitle">Obtén una cotización personalizada para tu envío en Guatemala</p>
+  </div>
+
+  <div class="cotizar-form">
+    <div class="form-row">
+      <!-- ORIGEN -->
+      <div class="form-group">
+        <h2 class="form-title">¿Desde dónde se envía el paquete?</h2>
+        <p class="form-subtitle">Poblado, municipio o departamento</p>
+        
+        <div class="search-container">
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              class="search-input"
+              placeholder="Buscar o seleccionar ciudad, municipio o departamento..."
+              [value]="busquedaOrigen"
+              (input)="filtrarOrigen($event)"
+              (focus)="mostrarListaCompleta('origen')"
+              (blur)="ocultarLista('origen')"
+            >
+            <button *ngIf="origenSeleccionado" class="clear-btn" (click)="limpiarOrigen()">✕</button>
+            <button class="list-btn" (click)="mostrarListaCompleta('origen')">📋</button>
+          </div>
+          
+          <div class="dropdown" *ngIf="mostrarListaOrigen || (origenFiltrado.length > 0 && busquedaOrigen !== origenSeleccionado)">
+            <div class="dropdown-header">
+              <span>📍 Selecciona el origen</span>
+              <input 
+                type="text" 
+                class="dropdown-search"
+                placeholder="Buscar en la lista..."
+                [value]="busquedaOrigen"
+                (input)="filtrarOrigen($event)"
+                (click)="$event.stopPropagation()"
+              >
+            </div>
+            <ul class="dropdown-list">
+              <li 
+                *ngFor="let ubicacion of origenFiltrado.slice(0, 50)" 
+                class="dropdown-item"
+                (click)="seleccionarOrigen(ubicacion)"
+              >
+                <span class="municipio">{{ ubicacion.split(',')[0] }}</span>
+                <span class="departamento">{{ ubicacion.split(',')[1] }}</span>
+              </li>
+            </ul>
+            <div class="dropdown-footer" *ngIf="origenFiltrado.length > 50">
+              <span>Mostrando 50 de {{origenFiltrado.length}} resultados. Usa la búsqueda para encontrar más específicamente.</span>
+            </div>
+            <div class="dropdown-footer" *ngIf="origenFiltrado.length === 0 && busquedaOrigen">
+              <span>No se encontraron resultados para "{{busquedaOrigen}}"</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="selected-location" *ngIf="origenSeleccionado">
+          <span class="location-icon">📍</span>
+          <span class="location-text">{{ origenSeleccionado }}</span>
+          <button class="change-btn" (click)="limpiarOrigen()">Cambiar</button>
+        </div>
+      </div>
+
+      <!-- DESTINO -->
+      <div class="form-group">
+        <h2 class="form-title">¿A dónde se envía el paquete?</h2>
+        <p class="form-subtitle">Poblado, municipio o departamento</p>
+        
+        <div class="search-container">
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              class="search-input"
+              placeholder="Buscar o seleccionar ciudad, municipio o departamento..."
+              [value]="busquedaDestino"
+              (input)="filtrarDestino($event)"
+              (focus)="mostrarListaCompleta('destino')"
+              (blur)="ocultarLista('destino')"
+            >
+            <button *ngIf="destinoSeleccionado" class="clear-btn" (click)="limpiarDestino()">✕</button>
+            <button class="list-btn" (click)="mostrarListaCompleta('destino')">📋</button>
+          </div>
+          
+          <div class="dropdown" *ngIf="mostrarListaDestino || (destinoFiltrado.length > 0 && busquedaDestino !== destinoSeleccionado)">
+            <div class="dropdown-header">
+              <span>🎯 Selecciona el destino</span>
+              <input 
+                type="text" 
+                class="dropdown-search"
+                placeholder="Buscar en la lista..."
+                [value]="busquedaDestino"
+                (input)="filtrarDestino($event)"
+                (click)="$event.stopPropagation()"
+              >
+            </div>
+            <ul class="dropdown-list">
+              <li 
+                *ngFor="let ubicacion of destinoFiltrado.slice(0, 50)" 
+                class="dropdown-item"
+                (click)="seleccionarDestino(ubicacion)"
+              >
+                <span class="municipio">{{ ubicacion.split(',')[0] }}</span>
+                <span class="departamento">{{ ubicacion.split(',')[1] }}</span>
+              </li>
+            </ul>
+            <div class="dropdown-footer" *ngIf="destinoFiltrado.length > 50">
+              <span>Mostrando 50 de {{destinoFiltrado.length}} resultados. Usa la búsqueda para encontrar más específicamente.</span>
+            </div>
+            <div class="dropdown-footer" *ngIf="destinoFiltrado.length === 0 && busquedaDestino">
+              <span>No se encontraron resultados para "{{busquedaDestino}}"</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="selected-location" *ngIf="destinoSeleccionado">
+          <span class="location-icon">🎯</span>
+          <span class="location-text">{{ destinoSeleccionado }}</span>
+          <button class="change-btn" (click)="limpiarDestino()">Cambiar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DE PAQUETES -->
+    <div class="paquetes-section">
+      <div class="paquetes-header">
+        <h2 class="form-title">¿Qué tipo de paquete desea enviar?</h2>
+        <button 
+          class="agregar-paquete-btn"
+          [class.disabled]="!tipoSeleccionado"
+          [disabled]="!tipoSeleccionado"
+          (click)="agregarPaquete()"
+        >
+          <span class="btn-icon">➕</span>
+          Agregar Paquete
+        </button>
+      </div>
+
+      <!-- SELECTOR DE TIPOS DE PAQUETE -->
+      <div class="tipos-paquete-grid">
+        <div 
+          *ngFor="let tipo of tiposPaquete" 
+          class="tipo-paquete-card"
+          [class.selected]="tipoSeleccionado?.id === tipo.id"
+          (click)="seleccionarTipoPaquete(tipo)"
+          [style.background]="tipo.color"
+        >
+          <div class="paquete-icono">{{ tipo.icono }}</div>
+          <h3 class="paquete-nombre">{{ tipo.nombre }}</h3>
+          <div class="paquete-limites">
+            <div class="limite-item">
+              <span class="limite-label">Máx:</span>
+              <span class="limite-valor">{{ tipo.limiteSize }}</span>
+            </div>
+            <div class="limite-item">
+              <span class="limite-label">Peso:</span>
+              <span class="limite-valor">{{ tipo.limitePeso }}</span>
+            </div>
+          </div>
+          <p class="paquete-descripcion">{{ tipo.descripcion }}</p>
+          <div class="selection-indicator" *ngIf="tipoSeleccionado?.id === tipo.id">
+            ✓ Seleccionado
+          </div>
+        </div>
+      </div>
+
+      <!-- PAQUETES AGREGADOS -->
+      <div class="paquetes-agregados" *ngIf="paquetesSeleccionados.length > 0">
+        <h3 class="agregados-titulo">📦 Paquetes Agregados ({{ paquetesSeleccionados.length }})</h3>
+        <div class="paquetes-lista">
+          <div 
+            *ngFor="let paquete of paquetesSeleccionados" 
+            class="paquete-agregado"
+            [style.border-left-color]="paquete.tipo.color"
+          >
+            <div class="paquete-info">
+              <div class="paquete-header-info">
+                <span class="paquete-icono-small">{{ paquete.tipo.icono }}</span>
+                <input 
+                  type="text" 
+                  class="nombre-input"
+                  [value]="paquete.nombrePersonalizado"
+                  (input)="actualizarNombre(paquete.id, $any($event.target).value)"
+                  placeholder="Nombre del paquete"
+                >
+              </div>
+              <div class="paquete-detalles">
+                <span class="detalle-tipo">{{ paquete.tipo.nombre }}</span>
+                <span class="detalle-limites">{{ paquete.tipo.limiteSize }} | {{ paquete.tipo.limitePeso }}</span>
+              </div>
+            </div>
+            <div class="paquete-controles">
+              <div class="cantidad-control">
+                <label>Cantidad:</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="99"
+                  class="cantidad-input"
+                  [value]="paquete.cantidad"
+                  (input)="actualizarCantidad(paquete.id, +$any($event.target).value)"
+                >
+              </div>
+              <button 
+                class="eliminar-btn"
+                (click)="eliminarPaquete(paquete.id)"
+                title="Eliminar paquete"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTÓN DE COTIZACIÓN -->
+    <div class="cotizar-actions">
+      <button 
+        class="cotizar-btn"
+        [class.disabled]="!origenSeleccionado || !destinoSeleccionado || paquetesSeleccionados.length === 0"
+        [disabled]="!origenSeleccionado || !destinoSeleccionado || paquetesSeleccionados.length === 0"
+        (click)="cotizarEnvio()"
+      >
+        <span class="btn-icon">💰</span>
+        Cotizar Envío
+        <span class="paquetes-count" *ngIf="paquetesSeleccionados.length > 0">
+          ({{ paquetesSeleccionados.length }} {{ paquetesSeleccionados.length === 1 ? 'paquete' : 'paquetes' }})
+        </span>
+      </button>
+    </div>
+
+    <!-- INFORMACIÓN ADICIONAL -->
+    <div class="info-section">
+      <div class="info-card">
+        <h3>📦 Información del Servicio</h3>
+        <ul>
+          <li>✅ Cobertura en los 22 departamentos de Guatemala</li>
+          <li>✅ Más de 300 municipios disponibles</li>
+          <li>✅ Cotización gratuita e inmediata</li>
+          <li>✅ Diferentes opciones de envío</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

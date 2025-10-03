@@ -1,0 +1,52 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <!-- Logo -->
+    <div class="navbar-logo">
+      <a routerLink="/">
+        <img src="assets/images/logo.svg" alt="Logo Envíos" class="logo-image">
+        <span class="logo-text">EnvíosRápidos</span>
+      </a>
+    </div>
+
+    <!-- Menu Toggle (Mobile) -->
+    <button class="menu-toggle" (click)="toggleMenu()" [class.active]="isMenuOpen">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <!-- Navigation Menu -->
+    <ul class="navbar-menu" [class.active]="isMenuOpen">
+      <li class="navbar-item">
+        <a routerLink="/" class="navbar-link" (click)="closeMenu()" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <span class="nav-icon">🏠</span>
+          Inicio
+        </a>
+      </li>
+      <li class="navbar-item">
+        <a routerLink="/cotizar" class="navbar-link" (click)="closeMenu()" routerLinkActive="active">
+          <span class="nav-icon">💰</span>
+          Cotizar
+        </a>
+      </li>
+      <li class="navbar-item">
+        <a routerLink="/realizar-envio" class="navbar-link" (click)="closeMenu()" routerLinkActive="active">
+          <span class="nav-icon">📦</span>
+          Realizar Envío
+        </a>
+      </li>
+      <li class="navbar-item">
+        <a routerLink="/rastreo" class="navbar-link" (click)="closeMenu()" routerLinkActive="active">
+          <span class="nav-icon">📍</span>
+          Rastreo
+        </a>
+      </li>
+      <li class="navbar-item">
+        <a routerLink="/contacto" class="navbar-link" (click)="closeMenu()" routerLinkActive="active">
+          <span class="nav-icon">📞</span>
+          Contacto
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>

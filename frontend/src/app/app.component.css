@@ -1,0 +1,11 @@
+/* Global App Styles */
+main {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+/* Reset body margin for navbar */
+body {
+  margin: 0;
+  padding: 0;
+}
