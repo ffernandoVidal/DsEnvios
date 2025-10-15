@@ -1,0 +1,87 @@
+<div class="home-container">
+  <!-- Hero Carousel Section -->
+  <section class="carousel-section">
+    <div class="carousel-container">
+      <div class="carousel-slide" *ngFor="let image of carouselImages; let i = index" 
+           [class.active]="i === currentSlide">
+        <img [src]="image.src" [alt]="image.alt" class="carousel-image">
+        <div class="carousel-content">
+          <h2>{{ image.title }}</h2>
+          <p>{{ image.description }}</p>
+          <button class="cta-button">Conocer Más</button>
+        </div>
+      </div>
+      
+      <!-- Carousel Controls -->
+      <button class="carousel-control prev" (click)="prevSlide()">❮</button>
+      <button class="carousel-control next" (click)="nextSlide()">❯</button>
+      
+      <!-- Carousel Indicators -->
+      <div class="carousel-indicators">
+        <button *ngFor="let image of carouselImages; let i = index" 
+                [class.active]="i === currentSlide"
+                (click)="goToSlide(i)"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Collaborators Section -->
+  <section class="collaborators-section">
+    <div class="container">
+      <h2 class="section-title">Nuestro Equipo</h2>
+      <div class="collaborators-grid">
+        <div class="collaborator-card" *ngFor="let collaborator of collaborators">
+          <div class="collaborator-image">
+            <img [src]="collaborator.image" [alt]="collaborator.name">
+          </div>
+          <div class="collaborator-info">
+            <h3>{{ collaborator.name }}</h3>
+            <h4>{{ collaborator.position }}</h4>
+            <p>{{ collaborator.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Brands Section -->
+  <section class="brands-section">
+    <div class="container">
+      <h2 class="section-title">Nuestros Socios</h2>
+      <div class="brands-grid">
+        <div class="brand-item" *ngFor="let brand of brands">
+          <img [src]="brand.logo" [alt]="brand.name" class="brand-logo">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Preview -->
+  <section class="services-preview">
+    <div class="container">
+      <h2 class="section-title">Nuestros Servicios</h2>
+      <div class="services-grid">
+        <div class="service-card" routerLink="/cotizar">
+          <div class="service-icon">💰</div>
+          <h3>Cotizar</h3>
+          <p>Obtén una cotización personalizada para tus envíos</p>
+        </div>
+        <div class="service-card" routerLink="/realizar-envio">
+          <div class="service-icon">📦</div>
+          <h3>Realizar Envío</h3>
+          <p>Programa tu envío de manera rápida y sencilla</p>
+        </div>
+        <div class="service-card" routerLink="/rastreo">
+          <div class="service-icon">📍</div>
+          <h3>Rastreo</h3>
+          <p>Rastrea tu paquete en tiempo real</p>
+        </div>
+        <div class="service-card" routerLink="/contacto">
+          <div class="service-icon">📞</div>
+          <h3>Contacto</h3>
+          <p>Ponte en contacto con nuestro equipo</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
