@@ -1,0 +1,22 @@
+{
+  "name": "enviosds-backend",
+  "version": "1.0.0",
+  "description": "Backend del Sistema EnviosDS con integración Forza API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["envios", "logistics", "forza", "api"],
+  "author": "EnviosDS Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mongodb": "^6.20.0"
+  }
+}

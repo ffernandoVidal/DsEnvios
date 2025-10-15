@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnviosDS - Sistema con Forza Ecommerce Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 10px;
+        }
+
+        .status-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .status-item {
+            display: inline-block;
+            margin-right: 20px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .status-connected {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .status-disconnected {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d5edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .quote-result {
+            background: #e8f4f8;
+            border: 1px solid #bee5eb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .quote-services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .service-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            text-align: center;
+        }
+
+        .service-card.selected {
+            border-color: #3498db;
+            background: #f0f8ff;
+        }
+
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tab-container {
+            margin-bottom: 20px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f1f1f1;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            background: #f1f1f1;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .package-sizes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .package-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .package-card:hover {
+            border-color: #3498db;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+
+        .package-card.selected {
+            border-color: #3498db;
+            background: #f0f8ff;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .package-card h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .package-card .size-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .package-card .dimensions {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .package-card .weight {
+            font-size: 12px;
+            color: #666;
+        }
+
+        datalist {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .location-input-wrapper {
+            position: relative;
+        }
+
+        .location-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .suggestion-item:hover {
+            background: #f0f8ff;
+        }
+
+        .suggestion-item .location-type {
+            font-size: 12px;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .suggestion-item .departamento {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .suggestion-item .municipio {
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .suggestion-item .aldea {
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚚 EnviosDS</h1>
+            <p>Sistema de Envíos con Integración Forza Ecommerce Engine</p>
+        </div>
+
+        <!-- Barra de Estado -->
+        <div class="status-bar">
+            <span class="status-item" id="backendStatus">Backend: Verificando...</span>
+            <span class="status-item" id="forzaStatus">Forza API: Verificando...</span>
+            <span class="status-item" id="dbStatus">Base de Datos: Verificando...</span>
+        </div>
+
+        <!-- Información de Usuario -->
+        <div class="user-info" id="userInfo" style="display: none;">
+            <strong>Usuario:</strong> <span id="userName"></span> | 
+            <strong>Rol:</strong> <span id="userRole"></span> |
+            <button onclick="logout()" style="background: #e74c3c; padding: 5px 10px; font-size: 12px;">Cerrar Sesión</button>
+        </div>
+
+        <!-- Tabs de Navegación -->
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="showTab('login')">🔐 Login</button>
+                <button class="tab-button" onclick="showTab('quote')">💰 Cotizar</button>
+                <button class="tab-button" onclick="showTab('shipment')">📦 Crear Envío</button>
+                <button class="tab-button" onclick="showTab('tracking')">📍 Rastreo</button>
+                <button class="tab-button" onclick="showTab('management')">📊 Gestión</button>
+            </div>
+        </div>
+
+        <!-- Tab de Login -->
+        <div class="tab-content active" id="tab-login">
+            <div class="section">
+                <h2>🔐 Iniciar Sesión</h2>
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="username">Usuario:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit">Iniciar Sesión</button>
+                    <div id="loginResult" class="result"></div>
+                </form>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                    <h4>Usuarios de Prueba:</h4>
+                    <p><strong>admin</strong> / admin123</p>
+                    <p><strong>usuario1</strong> / 123456</p>
+                    <p><strong>operador</strong> / operador123</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab de Cotización -->
+        <div class="tab-content" id="tab-quote">
+            <div class="section">
+                <h2>💰 Cotización con Forza API</h2>
+                <form id="quoteForm" onsubmit="handleQuote(event)">
+                    <div class="form-group">
+                        <label>Tamaño del Paquete:</label>
+                        <div class="package-sizes">
+                            <div class="package-card" onclick="selectPackage('small')">
+                                <h4>Paquete</h4>
+                                <div class="size-label">Pequeño</div>
+                                <div class="dimensions">Hasta 30x20x15 cm</div>
+                                <div class="weight">Hasta 2 kg</div>
+                            </div>
+                            <div class="package-card" onclick="selectPackage('medium')">
+                                <h4>Paquete</h4>
+                                <div class="size-label">Mediano</div>
+                                <div class="dimensions">Hasta 40x30x25 cm</div>
+                                <div class="weight">Hasta 5 kg</div>
+                            </div>
+                            <div class="package-card" onclick="selectPackage('large')">
+                                <h4>Paquete</h4>
+                                <div class="size-label">Grande</div>
+                                <div class="dimensions">Hasta 60x40x40 cm</div>
+                                <div class="weight">Hasta 10 kg</div>
+                            </div>
+                            <div class="package-card" onclick="selectPackage('extra-large')">
+                                <h4>Paquete</h4>
+                                <div class="size-label">Extra Grande</div>
+                                <div class="dimensions">Hasta 80x60x50 cm</div>
+                                <div class="weight">Hasta 20 kg</div>
+                            </div>
+                            <div class="package-card" onclick="selectPackage('oversized')">
+                                <h4>Paquete</h4>
+                                <div class="size-label">Sobredimensionado</div>
+                                <div class="dimensions">Más de 80x60x50 cm</div>
+                                <div class="weight">Más de 20 kg</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="selectedPackageSize" name="selectedPackageSize" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="originCity">Ciudad Origen:</label>
+                            <div class="location-input-wrapper">
+                                <input type="text" id="originCity" name="originCity" 
+                                       placeholder="Buscar departamento, municipio o aldea..." 
+                                       autocomplete="off" 
+                                       oninput="searchLocations(this.value, 'guatemalaLocationsList')" 
+                                       required>
+                                <div class="location-suggestions" id="originSuggestions"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="destCity">Ciudad Destino:</label>
+                            <div class="location-input-wrapper">
+                                <input type="text" id="destCity" name="destCity" 
+                                       placeholder="Buscar departamento, municipio o aldea..." 
+                                       autocomplete="off" 
+                                       oninput="searchLocations(this.value, 'guatemalaLocationsList2')" 
+                                       required>
+                                <div class="location-suggestions" id="destSuggestions"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <datalist id="guatemalaLocationsList">
+                        <!-- Locations will be loaded dynamically -->
+                    </datalist>
+                    <datalist id="guatemalaLocationsList2">
+                        <!-- Locations will be loaded dynamically -->
+                    </datalist>
+
+                    <div class="form-group">
+                        <label for="declaredValue">Valor Declarado (GTQ):</label>
+                        <input type="number" id="declaredValue" name="declaredValue" step="0.01" min="0" value="100">
+                    </div>
+
+                    <button type="submit">Cotizar con Forza API</button>
+                    <div id="quoteResult" class="result"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab de Crear Envío -->
+        <div class="tab-content" id="tab-shipment">
+            <div class="section">
+                <h2>📦 Crear Envío</h2>
+                <form id="shipmentForm" onsubmit="handleCreateShipment(event)">
+                    <h3>Información del Remitente</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="senderName">Nombre:</label>
+                            <input type="text" id="senderName" name="senderName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="senderPhone">Teléfono:</label>
+                            <input type="tel" id="senderPhone" name="senderPhone" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="senderAddress">Dirección:</label>
+                        <textarea id="senderAddress" name="senderAddress" rows="2" required></textarea>
+                    </div>
+
+                    <h3>Información del Destinatario</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="receiverName">Nombre:</label>
+                            <input type="text" id="receiverName" name="receiverName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="receiverPhone">Teléfono:</label>
+                            <input type="tel" id="receiverPhone" name="receiverPhone" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="receiverAddress">Dirección:</label>
+                        <textarea id="receiverAddress" name="receiverAddress" rows="2" required></textarea>
+                    </div>
+
+                    <button type="submit">Crear Envío</button>
+                    <div id="shipmentResult" class="result"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab de Rastreo -->
+        <div class="tab-content" id="tab-tracking">
+            <div class="section">
+                <h2>📍 Rastrear Envío</h2>
+                <form id="trackingForm" onsubmit="handleTracking(event)">
+                    <div class="form-group">
+                        <label for="trackingNumber">Número de Rastreo:</label>
+                        <input type="text" id="trackingNumber" name="trackingNumber" placeholder="Ingrese el número de rastreo" required>
+                    </div>
+                    <button type="submit">Rastrear</button>
+                    <div id="trackingResult" class="result"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab de Gestión -->
+        <div class="tab-content" id="tab-management">
+            <div class="section">
+                <h2>📊 Gestión de Envíos</h2>
+                <button onclick="loadShipments()">Cargar Envíos</button>
+                <button onclick="loadQuotes()">Cargar Cotizaciones</button>
+                <div id="managementResult" class="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3005/api';
+        let currentUser = null;
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            checkBackendStatus();
+            checkForzaStatus();
+            checkDBStatus();
+        });
+
+        // Funciones de Tab
+        function showTab(tabName) {
+            // Ocultar todas las tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Mostrar tab seleccionada
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Verificaciones de Estado
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                document.getElementById('backendStatus').textContent = 'Backend: ✅ Conectado';
+                document.getElementById('backendStatus').className = 'status-item status-connected';
+            } catch (error) {
+                document.getElementById('backendStatus').textContent = 'Backend: ❌ Error';
+                document.getElementById('backendStatus').className = 'status-item status-disconnected';
+            }
+        }
+
+        async function checkForzaStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/forza/status`);
+                const data = await response.json();
+                
+                if (data.enabled && data.api_status === 'Online') {
+                    document.getElementById('forzaStatus').textContent = 'Forza API: ✅ Activa';
+                    document.getElementById('forzaStatus').className = 'status-item status-connected';
+                } else {
+                    document.getElementById('forzaStatus').textContent = 'Forza API: ⚠️ Local';
+                    document.getElementById('forzaStatus').className = 'status-item status-disconnected';
+                }
+            } catch (error) {
+                document.getElementById('forzaStatus').textContent = 'Forza API: ❌ Error';
+                document.getElementById('forzaStatus').className = 'status-item status-disconnected';
+            }
+        }
+
+        async function checkDBStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/db-status`);
+                const data = await response.json();
+                
+                document.getElementById('dbStatus').textContent = data.connected ? 'DB: ✅ Conectada' : 'DB: ❌ Error';
+                document.getElementById('dbStatus').className = `status-item ${data.connected ? 'status-connected' : 'status-disconnected'}`;
+            } catch (error) {
+                document.getElementById('dbStatus').textContent = 'DB: ❌ Error';
+                document.getElementById('dbStatus').className = 'status-item status-disconnected';
+            }
+        }
+
+        // Función de Login
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const loginData = {
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
+
+            try {
+                showLoading('loginResult');
+                
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUser = data.user;
+                    showUserInfo(data.user);
+                    showResult('loginResult', 'success', `¡Bienvenido ${data.user.name}!`);
+                    showTab('quote');
+                } else {
+                    showResult('loginResult', 'error', data.message);
+                }
+            } catch (error) {
+                showResult('loginResult', 'error', 'Error de conexión con el servidor');
+            }
+        }
+
+        // Función de Cotización
+        async function handleQuote(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const selectedPackageSize = formData.get('selectedPackageSize');
+            
+            if (!selectedPackageSize) {
+                showResult('quoteResult', 'error', 'Por favor selecciona un tamaño de paquete');
+                return;
+            }
+            
+            const packageSpecs = getPackageSpecs(selectedPackageSize);
+            
+            const quoteData = {
+                origin: {
+                    city: formData.get('originCity'),
+                    country: 'GT'
+                },
+                destination: {
+                    city: formData.get('destCity'),
+                    country: 'GT'
+                },
+                package_details: {
+                    weight: packageSpecs.weight,
+                    length: packageSpecs.length,
+                    width: packageSpecs.width,
+                    height: packageSpecs.height,
+                    declared_value: parseFloat(formData.get('declaredValue') || 0)
+                }
+            };
+
+            try {
+                showLoading('quoteResult');
+                
+                const response = await fetch(`${API_BASE}/forza/quote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(quoteData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showQuoteResult(data);
+                } else {
+                    showResult('quoteResult', 'error', data.message);
+                }
+            } catch (error) {
+                showResult('quoteResult', 'error', 'Error obteniendo cotización');
+            }
+        }
+
+        // Función de Rastreo
+        async function handleTracking(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const trackingNumber = formData.get('trackingNumber');
+
+            try {
+                showLoading('trackingResult');
+                
+                const response = await fetch(`${API_BASE}/forza/tracking`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ trackingNumber })
+                });
+                
+                const data = await response.json();
+
+                if (data.success) {
+                    showTrackingResult(data.tracking);
+                } else {
+                    showResult('trackingResult', 'error', data.message);
+                }
+            } catch (error) {
+                showResult('trackingResult', 'error', 'Error rastreando envío');
+            }
+        }
+
+        // Función para crear envío
+        async function handleCreateShipment(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const shipmentData = {
+                sender: {
+                    name: formData.get('senderName'),
+                    phone: formData.get('senderPhone'),
+                    address: formData.get('senderAddress')
+                },
+                receiver: {
+                    name: formData.get('receiverName'),
+                    phone: formData.get('receiverPhone'),
+                    address: formData.get('receiverAddress')
+                }
+            };
+
+            try {
+                showLoading('shipmentResult');
+                
+                const response = await fetch(`${API_BASE}/forza/shipment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(shipmentData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult('shipmentResult', 'success', 
+                        `Envío creado exitosamente. Número de rastreo: ${data.tracking_number}`);
+                } else {
+                    showResult('shipmentResult', 'error', data.message);
+                }
+            } catch (error) {
+                showResult('shipmentResult', 'error', 'Error creando envío');
+            }
+        }
+
+        // Funciones de Gestión
+        async function loadShipments() {
+            try {
+                showLoading('managementResult');
+                
+                const response = await fetch(`${API_BASE}/shipments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ limit: 50 })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showShipmentsTable(data.shipments);
+                } else {
+                    showResult('managementResult', 'error', data.message);
+                }
+            } catch (error) {
+                showResult('managementResult', 'error', 'Error cargando envíos');
+            }
+        }
+
+        async function loadQuotes() {
+            try {
+                showLoading('managementResult');
+                
+                const response = await fetch(`${API_BASE}/quotes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ limit: 50 })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showQuotesTable(data.quotes);
+                } else {
+                    showResult('managementResult', 'error', data.message);
+                }
+            } catch (error) {
+                showResult('managementResult', 'error', 'Error cargando cotizaciones');
+            }
+        }
+
+        // Funciones de UI Helper
+        function showUserInfo(user) {
+            document.getElementById('userName').textContent = user.name;
+            document.getElementById('userRole').textContent = user.role;
+            document.getElementById('userInfo').style.display = 'block';
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('userInfo').style.display = 'none';
+            showTab('login');
+            document.getElementById('loginForm').reset();
+        }
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = '<div class="loading"><div class="spinner"></div><p>Cargando...</p></div>';
+            element.style.display = 'block';
+        }
+
+        function showResult(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.innerHTML = message;
+            element.style.display = 'block';
+        }
+
+        function showQuoteResult(data) {
+            const element = document.getElementById('quoteResult');
+            const quote = data.quote;
+            
+            let html = `
+                <div class="quote-result">
+                    <h3>💰 Cotización ${data.source === 'forza' ? '(Forza API)' : '(Local)'}</h3>
+                    <p><strong>Costo Total:</strong> Q${quote.total_cost} ${quote.currency || 'GTQ'}</p>
+                    <p><strong>Tiempo Estimado:</strong> ${quote.estimated_delivery}</p>
+            `;
+
+            if (quote.services && quote.services.length > 0) {
+                html += '<h4>Servicios Disponibles:</h4><div class="quote-services">';
+                quote.services.forEach(service => {
+                    html += `
+                        <div class="service-card">
+                            <h4>${service.name}</h4>
+                            <div class="price">Q${service.cost}</div>
+                            <p>${service.delivery_time}</p>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            
+            element.innerHTML = html;
+            element.style.display = 'block';
+        }
+
+        function showTrackingResult(tracking) {
+            const element = document.getElementById('trackingResult');
+            
+            let html = `
+                <div class="quote-result">
+                    <h3>📍 Estado del Envío</h3>
+                    <p><strong>Número de Rastreo:</strong> ${tracking.tracking_number}</p>
+                    <p><strong>Estado:</strong> ${tracking.status}</p>
+            `;
+
+            if (tracking.estimated_delivery) {
+                html += `<p><strong>Entrega Estimada:</strong> ${tracking.estimated_delivery}</p>`;
+            }
+
+            if (tracking.events && tracking.events.length > 0) {
+                html += '<h4>Historial:</h4><ul>';
+                tracking.events.forEach(event => {
+                    html += `<li>${event.date}: ${event.description}</li>`;
+                });
+                html += '</ul>';
+            }
+
+            html += '</div>';
+            
+            element.innerHTML = html;
+            element.style.display = 'block';
+        }
+
+        function showShipmentsTable(shipments) {
+            const element = document.getElementById('managementResult');
+            
+            let html = '<h3>📦 Envíos Recientes</h3><table style="width: 100%; border-collapse: collapse;">';
+            html += '<tr style="background: #f1f1f1;"><th>Número</th><th>Remitente</th><th>Destinatario</th><th>Estado</th><th>Fecha</th></tr>';
+            
+            shipments.forEach(shipment => {
+                html += `
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 10px;">${shipment.tracking_number || 'N/A'}</td>
+                        <td style="padding: 10px;">${shipment.sender?.name || 'N/A'}</td>
+                        <td style="padding: 10px;">${shipment.receiver?.name || 'N/A'}</td>
+                        <td style="padding: 10px;">${shipment.status || 'Creado'}</td>
+                        <td style="padding: 10px;">${new Date(shipment.created_at).toLocaleDateString()}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</table>';
+            element.innerHTML = html;
+            element.style.display = 'block';
+        }
+
+        function showQuotesTable(quotes) {
+            const element = document.getElementById('managementResult');
+            
+            let html = '<h3>💰 Cotizaciones Recientes</h3><table style="width: 100%; border-collapse: collapse;">';
+            html += '<tr style="background: #f1f1f1;"><th>Origen</th><th>Destino</th><th>Costo</th><th>Fuente</th><th>Fecha</th></tr>';
+            
+            quotes.forEach(quote => {
+                html += `
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 10px;">${quote.origin?.city || 'N/A'}</td>
+                        <td style="padding: 10px;">${quote.destination?.city || 'N/A'}</td>
+                        <td style="padding: 10px;">Q${quote.quote?.total_cost || 'N/A'}</td>
+                        <td style="padding: 10px;">${quote.source || 'N/A'}</td>
+                        <td style="padding: 10px;">${new Date(quote.created_at).toLocaleDateString()}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</table>';
+            element.innerHTML = html;
+            element.style.display = 'block';
+        }
+
+        // Package selection functions
+        function selectPackage(size) {
+            // Remove selection from all cards
+            document.querySelectorAll('.package-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            event.target.closest('.package-card').classList.add('selected');
+            
+            // Store selected size
+            document.getElementById('selectedPackageSize').value = size;
+        }
+
+        function getPackageSpecs(size) {
+            const specs = {
+                'small': { weight: 2, length: 30, width: 20, height: 15 },
+                'medium': { weight: 5, length: 40, width: 30, height: 25 },
+                'large': { weight: 10, length: 60, width: 40, height: 40 },
+                'extra-large': { weight: 20, length: 80, width: 60, height: 50 },
+                'oversized': { weight: 25, length: 100, width: 80, height: 60 }
+            };
+            return specs[size] || specs['medium'];
+        }
+
+        // Load Guatemala locations
+        async function loadGuatemalaLocations() {
+            try {
+                const response = await fetch(`${API_BASE}/api/guatemala/locations`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const datalist1 = document.getElementById('guatemalaLocationsList');
+                    const datalist2 = document.getElementById('guatemalaLocationsList2');
+                    
+                    datalist1.innerHTML = '';
+                    datalist2.innerHTML = '';
+                    
+                    data.locations.forEach(location => {
+                        const option1 = document.createElement('option');
+                        option1.value = location;
+                        datalist1.appendChild(option1);
+                        
+                        const option2 = document.createElement('option');
+                        option2.value = location;
+                        datalist2.appendChild(option2);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading Guatemala locations:', error);
+            }
+        }
+
+        // Búsqueda inteligente de ubicaciones
+        let searchTimeout = null;
+        async function searchLocations(query, datalistId) {
+            // Limpiar timeout anterior
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                hideSuggestions(datalistId);
+                return;
+            }
+            
+            // Debounce la búsqueda
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/api/guatemala/search?q=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showSuggestions(data.locations, datalistId, query);
+                    }
+                } catch (error) {
+                    console.error('Error en búsqueda:', error);
+                }
+            }, 300);
+        }
+
+        // Mostrar sugerencias
+        function showSuggestions(locations, datalistId, query) {
+            const input = document.querySelector(`[oninput*="${datalistId}"]`);
+            const suggestionsId = datalistId === 'guatemalaLocationsList' ? 'originSuggestions' : 'destSuggestions';
+            const suggestionsDiv = document.getElementById(suggestionsId);
+            
+            if (!suggestionsDiv) return;
+            
+            suggestionsDiv.innerHTML = '';
+            
+            if (locations.length === 0) {
+                suggestionsDiv.innerHTML = '<div class="suggestion-item">No se encontraron ubicaciones</div>';
+                suggestionsDiv.style.display = 'block';
+                return;
+            }
+            
+            locations.slice(0, 10).forEach(location => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                
+                // Determinar tipo de ubicación
+                const commas = (location.match(/,/g) || []).length;
+                let typeClass = '';
+                let typeText = '';
+                
+                if (commas === 0) {
+                    typeClass = 'departamento';
+                    typeText = '(Departamento)';
+                } else if (commas === 1) {
+                    typeClass = 'municipio';
+                    typeText = '(Municipio)';
+                } else {
+                    typeClass = 'aldea';
+                    typeText = '(Aldea)';
+                }
+                
+                // Resaltar texto coincidente
+                const highlightedLocation = location.replace(
+                    new RegExp(`(${query})`, 'gi'),
+                    '<strong>$1</strong>'
+                );
+                
+                item.innerHTML = `
+                    <span class="${typeClass}">${highlightedLocation}</span>
+                    <span class="location-type">${typeText}</span>
+                `;
+                
+                item.onclick = () => {
+                    input.value = location;
+                    hideSuggestions(datalistId);
+                };
+                
+                suggestionsDiv.appendChild(item);
+            });
+            
+            suggestionsDiv.style.display = 'block';
+        }
+
+        // Ocultar sugerencias
+        function hideSuggestions(datalistId) {
+            const suggestionsId = datalistId === 'guatemalaLocationsList' ? 'originSuggestions' : 'destSuggestions';
+            const suggestionsDiv = document.getElementById(suggestionsId);
+            if (suggestionsDiv) {
+                suggestionsDiv.style.display = 'none';
+            }
+        }
+
+        // Ocultar sugerencias al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.location-input-wrapper')) {
+                hideSuggestions('guatemalaLocationsList');
+                hideSuggestions('guatemalaLocationsList2');
+            }
+        });
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGuatemalaLocations();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "enviosds",
+  "version": "1.0.0",
+  "description": "Sistema completo de gestión de envíos con integración Forza Ecommerce Engine",
+  "main": "servidor-frontend.js",
+  "scripts": {
+    "start": "node servidor-frontend.js",
+    "backend": "node backend/server.js",
+    "dev": "concurrently \"npm run backend\" \"npm run start\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["envios", "logistics", "forza", "ecommerce", "shipping"],
+  "author": "EnviosDS Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "express": "^5.1.0"
+  }
+}
