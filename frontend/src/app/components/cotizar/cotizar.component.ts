@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { EnviosService } from '../../services/envios.service';
 
 interface Municipio {
   nombre: string;
@@ -27,12 +29,20 @@ interface PaqueteSeleccionado {
   nombrePersonalizado: string;
 }
 
+interface ResultadoCotizacion {
+  success: boolean;
+  cotizacion?: any;
+  message?: string;
+  error?: string;
+}
+
 @Component({
   selector: 'app-cotizar',
   templateUrl: './cotizar.component.html',
   styleUrls: ['./cotizar.component.css']
 })
-export class CotizarComponent {
+export class CotizarComponent implements OnInit, OnDestroy {
+  private subscription: Subscription = new Subscription();
   departamentosGuatemala: Departamento[] = [
     {
       nombre: 'Guatemala',
@@ -243,51 +253,73 @@ export class CotizarComponent {
       limiteSize: '28cm',
       limitePeso: '10lbs',
       descripcion: 'Ideal para documentos y objetos pequeños',
-      color: '#e3f2fd'
+      color: '#ffffffff'
     },
     {
       id: 2,
       nombre: 'Mediano',
-      icono: '📋',
+      icono: '📦',
       limiteSize: '36cm',
       limitePeso: '30lbs',
       descripcion: 'Perfect para ropa y objetos medianos',
-      color: '#f3e5f5'
+      color: '#ffffffff'
     },
     {
       id: 3,
       nombre: 'Grande',
-      icono: '📫',
+      icono: '📦',
       limiteSize: '47cm',
       limitePeso: '40lbs',
       descripcion: 'Para electrodomésticos pequeños y más',
-      color: '#e8f5e8'
+      color: '#ffffffff'
     },
     {
       id: 4,
       nombre: 'Extra Grande',
-      icono: '🗃️',
+      icono: '📦',
       limiteSize: '51cm',
       limitePeso: '59lbs',
       descripcion: 'Para objetos grandes y pesados',
-      color: '#fff3e0'
+      color: '#ffffffff'
     },
     {
       id: 5,
       nombre: 'Sobredimensionado',
-      icono: '🏗️',
+      icono: '📦',
       limiteSize: 'Más de 51cm',
       limitePeso: 'Más de 60lbs',
       descripcion: 'Para envíos especiales y muy pesados',
-      color: '#ffebee'
+      color: '#ffffffff'
     }
   ];
 
   paquetesSeleccionados: PaqueteSeleccionado[] = [];
   tipoSeleccionado: TipoPaquete | null = null;
 
-  constructor() {
+  // Nuevas propiedades para el sistema de cotización
+  cotizacionEnProceso = false;
+  cotizacionResultado: ResultadoCotizacion | null = null;
+  mensajeError = '';
+  servicioSeleccionado = 'standard';
+
+  constructor(private enviosService: EnviosService) {
     this.generarListaMunicipios();
+  }
+
+  ngOnInit(): void {
+    // Suscribirse a cambios en las cotizaciones
+    this.subscription.add(
+      this.enviosService.cotizacion$.subscribe(cotizacion => {
+        if (cotizacion) {
+          this.cotizacionResultado = cotizacion;
+          this.cotizacionEnProceso = false;
+        }
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   generarListaMunicipios() {
@@ -381,19 +413,143 @@ export class CotizarComponent {
   }
 
   cotizarEnvio() {
-    if (this.origenSeleccionado && this.destinoSeleccionado && this.paquetesSeleccionados.length > 0) {
-      console.log('Cotizando envío:');
-      console.log('Origen:', this.origenSeleccionado);
-      console.log('Destino:', this.destinoSeleccionado);
-      console.log('Paquetes:', this.paquetesSeleccionados);
-      // Aquí irá la lógica de cotización
-    } else {
+    // Limpiar estados anteriores
+    this.mensajeError = '';
+    this.cotizacionResultado = null;
+
+    // Validaciones básicas
+    if (!this.origenSeleccionado || !this.destinoSeleccionado || this.paquetesSeleccionados.length === 0) {
       let mensaje = 'Por favor completa la siguiente información:\n';
       if (!this.origenSeleccionado) mensaje += '- Selecciona el origen\n';
       if (!this.destinoSeleccionado) mensaje += '- Selecciona el destino\n';
       if (this.paquetesSeleccionados.length === 0) mensaje += '- Agrega al menos un paquete\n';
-      alert(mensaje);
+      this.mensajeError = mensaje;
+      return;
     }
+
+    // Preparar datos para la API
+    this.cotizacionEnProceso = true;
+    
+    const requestData = {
+      origen: this.origenSeleccionado,
+      destino: this.destinoSeleccionado,
+      paquetes: this.enviosService.convertirPaquetesParaAPI(this.paquetesSeleccionados),
+      servicio: this.servicioSeleccionado
+    };
+
+    console.log('🚀 Enviando solicitud de cotización:', requestData);
+
+    // Llamar al servicio
+    this.subscription.add(
+      this.enviosService.cotizarEnvio(requestData).subscribe({
+        next: (response) => {
+          console.log('✅ Cotización recibida:', response);
+          this.cotizacionResultado = response;
+          this.cotizacionEnProceso = false;
+          
+          if (response.success) {
+            // Scroll hacia los resultados
+            setTimeout(() => {
+              const resultElement = document.getElementById('cotizacion-resultado');
+              if (resultElement) {
+                resultElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 100);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error en cotización:', error);
+          this.cotizacionEnProceso = false;
+          this.mensajeError = 'Error al obtener la cotización. Por favor intenta nuevamente.';
+          
+          if (error.error?.message) {
+            this.mensajeError = error.error.message;
+          }
+        }
+      })
+    );
+  }
+
+  // Método para cambiar el tipo de servicio
+  cambiarServicio(nuevoServicio: string) {
+    this.servicioSeleccionado = nuevoServicio;
+    // Si ya hay una cotización, recalcular automáticamente
+    if (this.cotizacionResultado && this.cotizacionResultado.success) {
+      this.cotizarEnvio();
+    }
+  }
+
+  // Método para obtener el nombre del servicio seleccionado
+  getNombreServicio(servicioId: string): string {
+    const servicios: { [key: string]: string } = {
+      'standard': 'Envío Estándar',
+      'express': 'Envío Express',
+      'overnight': 'Envío Nocturno'
+    };
+    return servicios[servicioId] || servicioId;
+  }
+
+  // Método para formatear precios
+  formatearPrecio(precio: number): string {
+    return this.enviosService.formatearPrecio(precio);
+  }
+
+  // Método para limpiar cotización
+  limpiarCotizacion() {
+    this.cotizacionResultado = null;
+    this.mensajeError = '';
+    this.enviosService.limpiarCotizacion();
+  }
+
+  // Método para formatear fechas
+  formatearFecha(fecha: string): string {
+    const date = new Date(fecha);
+    return date.toLocaleDateString('es-GT', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  // Método para obtener el desglose de precios
+  getDesgloseItems(breakdown: any): Array<{concepto: string, valor: number}> {
+    return [
+      { concepto: 'Tarifa base', valor: breakdown.basePrice },
+      { concepto: 'Costo por peso', valor: breakdown.weightCost },
+      { concepto: 'Costo por distancia', valor: breakdown.distanceCost },
+      { concepto: 'Seguro', valor: breakdown.insuranceCost },
+      { concepto: 'Recargo por manejo', valor: breakdown.handlingSurcharge },
+      { concepto: 'Recargo por combustible', valor: breakdown.fuelSurcharge }
+    ].filter(item => item.valor > 0);
+  }
+
+  // Método para proceder con el envío
+  procederConEnvio() {
+    if (this.cotizacionResultado) {
+      // Guardar datos en sessionStorage para el siguiente paso
+      sessionStorage.setItem('cotizacionDatos', JSON.stringify(this.cotizacionResultado));
+      sessionStorage.setItem('datosEnvio', JSON.stringify({
+        origen: this.origenSeleccionado,
+        destino: this.destinoSeleccionado,
+        paquetes: this.paquetesSeleccionados,
+        servicio: this.servicioSeleccionado
+      }));
+      
+      // Navegar a la página de realizar envío (si existe)
+      // this.router.navigate(['/realizar-envio']);
+      
+      // Por ahora mostrar mensaje
+      alert('Redirigiendo a realizar envío... (funcionalidad pendiente)');
+    }
+  }
+
+  // Método para nueva cotización
+  nuevaCotizacion() {
+    this.limpiarCotizacion();
+    // Mantener origen y destino, solo limpiar paquetes si se desea
+    // this.paquetesSeleccionados = [];
   }
 
   // Métodos para manejo de paquetes

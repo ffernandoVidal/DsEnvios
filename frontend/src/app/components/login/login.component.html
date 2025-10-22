@@ -1,0 +1,123 @@
+<div class="login-container">
+  <div class="login-card">
+    <!-- Header -->
+    <div class="login-header">
+      <div class="logo-section">
+        <h1 class="app-title">📦 EnviosDS</h1>
+        <p class="app-subtitle">Panel de Administración</p>
+      </div>
+    </div>
+
+    <!-- Formulario de Login -->
+    <form class="login-form" (ngSubmit)="onSubmit()" #loginFormRef="ngForm">
+      
+      <!-- Campo Usuario -->
+      <div class="form-group">
+        <label for="username" class="form-label">
+          <span class="label-icon"></span>
+          Usuario
+        </label>
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="form-input"
+            placeholder="Ingresa tu usuario"
+            [value]="loginForm.username"
+            (input)="onUsernameChange($event)"
+            [disabled]="isLoading"
+            autocomplete="username"
+            required
+          >
+          <span class="input-icon"></span>
+        </div>
+      </div>
+
+      <!-- Campo Contraseña -->
+      <div class="form-group">
+        <label for="password" class="form-label">
+          <span class="label-icon"></span>
+          Contraseña
+        </label>
+        <div class="input-wrapper">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            name="password"
+            class="form-input"
+            placeholder="Ingresa tu contraseña"
+            [value]="loginForm.password"
+            (input)="onPasswordChange($event)"
+            [disabled]="isLoading"
+            autocomplete="current-password"
+            required
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            [disabled]="isLoading"
+          >
+            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensaje de Error -->
+      <div class="error-message" *ngIf="errorMessage">
+        <span class="error-icon">⚠️</span>
+        <span class="error-text">{{ errorMessage }}</span>
+      </div>
+
+      <!-- Botón de Login -->
+      <button
+        type="submit"
+        class="login-btn"
+        [class.loading]="isLoading"
+        [disabled]="isLoading || !loginForm.username || !loginForm.password"
+      >
+        <span class="btn-content" *ngIf="!isLoading">
+          <span class="btn-icon"></span>
+          Iniciar Sesión
+        </span>
+        <span class="btn-content loading-content" *ngIf="isLoading">
+          <span class="spinner"></span>
+          Verificando...
+        </span>
+      </button>
+
+    </form>
+
+    <!-- Demo Credentials (solo para desarrollo) -->
+    <div class="demo-section" *ngIf="!isLoading">
+      <h4>Credenciales de Prueba:</h4>
+      <div class="demo-buttons">
+        <button class="demo-btn admin" (click)="fillDemoCredentials('admin')">
+           Admin
+        </button>
+        <button class="demo-btn user" (click)="fillDemoCredentials('user')">
+           Usuario
+        </button>
+        <!--<button class="demo-btn operator" (click)="fillDemoCredentials('operator')">
+           Operador
+        </button>-->
+      </div>
+      <p class="demo-note">
+        Haz clic en cualquier botón para llenar automáticamente las credenciales
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <p class="footer-text">
+        <span class="footer-icon"></span>
+        Acceso seguro al sistema de envíos
+      </p>
+      <p class="copyright">
+        © 2025 EnviosDS - Todos los derechos reservados
+      </p>
+    </div>
+
+  </div>
+</div>

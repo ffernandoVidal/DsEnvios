@@ -1,0 +1,263 @@
+<div class="realizar-envio-container">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-md-10">
+        <div class="card shadow-lg">
+          <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">
+              <i class="fas fa-shipping-fast me-2"></i>
+              Realizar Envío
+            </h2>
+          </div>
+
+          <div class="card-body">
+            <!-- Mostrar mensajes -->
+            <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              {{ errorMessage }}
+              <button type="button" class="btn-close" (click)="clearMessages()"></button>
+            </div>
+
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+              <i class="fas fa-check-circle me-2"></i>
+              {{ successMessage }}
+              <button type="button" class="btn-close" (click)="clearMessages()"></button>
+            </div>
+
+            <!-- Formulario simplificado -->
+            <form (ngSubmit)="onSubmit()" #shipmentFormRef="ngForm">
+              
+              <!-- Información del destinatario -->
+              <div class="row mb-4">
+                <div class="col-12">
+                  <h4 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-user me-2"></i>
+                    Información del Destinatario
+                  </h4>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="receiverName" class="form-label">Nombre completo *</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="receiverName"
+                    [(ngModel)]="shipmentForm.receiverName"
+                    name="receiverName"
+                    required
+                    placeholder="Nombre del destinatario">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="receiverEmail" class="form-label">Correo electrónico *</label>
+                  <input 
+                    type="email" 
+                    class="form-control" 
+                    id="receiverEmail"
+                    [(ngModel)]="shipmentForm.receiverEmail"
+                    name="receiverEmail"
+                    required
+                    placeholder="correo@ejemplo.com">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="receiverPhone" class="form-label">Teléfono</label>
+                  <input 
+                    type="tel" 
+                    class="form-control" 
+                    id="receiverPhone"
+                    [(ngModel)]="shipmentForm.receiverPhone"
+                    name="receiverPhone"
+                    placeholder="1234-5678">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="receiverReference" class="form-label">Referencia *</label>
+                  <select 
+                    class="form-select" 
+                    id="receiverReference"
+                    [(ngModel)]="shipmentForm.receiverReference"
+                    name="receiverReference"
+                    required>
+                    <option value="casa">Casa</option>
+                    <option value="trabajo">Trabajo</option>
+                    <option value="gimnasio">Gimnasio</option>
+                    <option value="escuela">Escuela</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label for="receiverDepartamento" class="form-label">Departamento *</label>
+                  <select 
+                    class="form-select" 
+                    id="receiverDepartamento"
+                    [(ngModel)]="shipmentForm.receiverDepartamento"
+                    name="receiverDepartamento"
+                    (change)="onDepartamentoChange()"
+                    required>
+                    <option value="">Seleccionar...</option>
+                    <option *ngFor="let dept of uniqueDepartments" [value]="dept">{{ dept }}</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label for="receiverMunicipio" class="form-label">Municipio *</label>
+                  <select 
+                    class="form-select" 
+                    id="receiverMunicipio"
+                    [(ngModel)]="shipmentForm.receiverMunicipio"
+                    name="receiverMunicipio"
+                    (change)="onMunicipioChange()"
+                    required>
+                    <option value="">Seleccionar...</option>
+                    <option *ngFor="let muni of municipiosDisponibles" [value]="muni">{{ muni }}</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label for="receiverPoblado" class="form-label">Zona/Poblado</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="receiverPoblado"
+                    [(ngModel)]="shipmentForm.receiverPoblado"
+                    name="receiverPoblado"
+                    placeholder="Zona o poblado">
+                </div>
+              </div>
+
+              <!-- Información del pago -->
+              <div class="row mb-4">
+                <div class="col-12">
+                  <h4 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-credit-card me-2"></i>
+                    Método de Pago
+                  </h4>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="paymentMethodId" class="form-label">Método de pago *</label>
+                  <select 
+                    class="form-select" 
+                    id="paymentMethodId"
+                    [(ngModel)]="shipmentForm.paymentMethodId"
+                    name="paymentMethodId"
+                    (change)="onMetodoPagoChange()"
+                    required>
+                    <option value="">Seleccionar método...</option>
+                    <option *ngFor="let method of paymentMethods" [value]="method._id">
+                      {{ method.displayName }} 
+                      <span *ngIf="method.fees.fixedAmount > 0">(+Q{{ method.fees.fixedAmount }})</span>
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Información del paquete -->
+              <div class="row mb-4">
+                <div class="col-12">
+                  <h4 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-box me-2"></i>
+                    Información del Paquete
+                  </h4>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="packageTypeId" class="form-label">Tipo de paquete *</label>
+                  <select 
+                    class="form-select" 
+                    id="packageTypeId"
+                    [(ngModel)]="shipmentForm.packageTypeId"
+                    name="packageTypeId"
+                    (change)="onTipoPaqueteChange()"
+                    required>
+                    <option value="">Seleccionar tipo...</option>
+                    <option *ngFor="let type of packageTypes" [value]="type._id">
+                      {{ type.displayName }} (máx {{ type.specifications.maxWeight }}kg) - Q{{ type.pricing.basePrice }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="packageWeight" class="form-label">Peso (kg)</label>
+                  <input 
+                    type="number" 
+                    class="form-control" 
+                    id="packageWeight"
+                    [(ngModel)]="shipmentForm.packageWeight"
+                    name="packageWeight"
+                    min="0.1"
+                    step="0.1"
+                    placeholder="0.0">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="packageValue" class="form-label">Valor declarado (Q)</label>
+                  <input 
+                    type="number" 
+                    class="form-control" 
+                    id="packageValue"
+                    [(ngModel)]="shipmentForm.packageValue"
+                    name="packageValue"
+                    min="1"
+                    placeholder="100.00">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="packageDescription" class="form-label">Descripción</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="packageDescription"
+                    [(ngModel)]="shipmentForm.packageDescription"
+                    name="packageDescription"
+                    placeholder="Descripción del contenido">
+                </div>
+              </div>
+
+              <!-- Resumen -->
+              <div class="row mb-4" *ngIf="costoTotal > 0">
+                <div class="col-12">
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <h5 class="card-title">
+                        <i class="fas fa-calculator me-2"></i>
+                        Resumen del Envío
+                      </h5>
+                      <div class="row">
+                        <div class="col-md-6">
+                          <p><strong>Costo Total:</strong> Q{{ costoTotal.toFixed(2) }}</p>
+                          <p><strong>Código de Guía:</strong> {{ codigoGuia || 'Se generará al crear' }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botones -->
+              <div class="row">
+                <div class="col-12 text-end">
+                  <button type="button" class="btn btn-secondary me-2" (click)="resetForm()">
+                    <i class="fas fa-undo me-2"></i>
+                    Limpiar
+                  </button>
+                  
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary"
+                    [disabled]="isSubmitting || !shipmentFormRef.form.valid">
+                    <i class="fas fa-shipping-fast me-2" *ngIf="!isSubmitting"></i>
+                    <i class="fas fa-spinner fa-spin me-2" *ngIf="isSubmitting"></i>
+                    {{ isSubmitting ? 'Creando Envío...' : 'Crear Envío' }}
+                  </button>
+                </div>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

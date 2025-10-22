@@ -220,16 +220,152 @@
     <div class="cotizar-actions">
       <button 
         class="cotizar-btn"
-        [class.disabled]="!origenSeleccionado || !destinoSeleccionado || paquetesSeleccionados.length === 0"
-        [disabled]="!origenSeleccionado || !destinoSeleccionado || paquetesSeleccionados.length === 0"
+        [class.disabled]="!origenSeleccionado || !destinoSeleccionado || paquetesSeleccionados.length === 0 || cotizacionEnProceso"
+        [disabled]="!origenSeleccionado || !destinoSeleccionado || paquetesSeleccionados.length === 0 || cotizacionEnProceso"
         (click)="cotizarEnvio()"
       >
-        <span class="btn-icon">💰</span>
-        Cotizar Envío
-        <span class="paquetes-count" *ngIf="paquetesSeleccionados.length > 0">
+        <span class="btn-icon" *ngIf="!cotizacionEnProceso">💰</span>
+        <span class="btn-icon spinner" *ngIf="cotizacionEnProceso">⏳</span>
+        <span *ngIf="!cotizacionEnProceso">Cotizar Envío</span>
+        <span *ngIf="cotizacionEnProceso">Calculando...</span>
+        <span class="paquetes-count" *ngIf="paquetesSeleccionados.length > 0 && !cotizacionEnProceso">
           ({{ paquetesSeleccionados.length }} {{ paquetesSeleccionados.length === 1 ? 'paquete' : 'paquetes' }})
         </span>
       </button>
+    </div>
+
+    <!-- RESULTADOS DE COTIZACIÓN -->
+    <div id="cotizacion-resultado" class="cotizacion-resultado" *ngIf="cotizacionResultado || mensajeError">
+      
+      <!-- Error -->
+      <div class="error-message" *ngIf="mensajeError">
+        <div class="error-icon">⚠️</div>
+        <div class="error-content">
+          <h3>Error en la cotización</h3>
+          <p>{{ mensajeError }}</p>
+          <button class="retry-btn" (click)="cotizarEnvio()" *ngIf="origenSeleccionado && destinoSeleccionado && paquetesSeleccionados.length > 0">
+            Intentar nuevamente
+          </button>
+        </div>
+      </div>
+
+      <!-- Cotización exitosa -->
+      <div class="cotizacion-exitosa" *ngIf="cotizacionResultado && cotizacionResultado.success">
+        
+        <!-- Header del resultado -->
+        <div class="resultado-header">
+          <div class="resultado-icon">✅</div>
+          <div class="resultado-title">
+            <h3>¡Cotización Generada!</h3>
+            <p class="resultado-subtitle">{{ cotizacionResultado.message }}</p>
+          </div>
+          <button class="close-btn" (click)="limpiarCotizacion()">✕</button>
+        </div>
+
+        <!-- Información de ruta -->
+        <div class="ruta-info">
+          <div class="ubicacion origen">
+            <span class="ubicacion-icon">📍</span>
+            <div class="ubicacion-text">
+              <strong>Origen:</strong><br>
+              {{ cotizacionResultado.cotizacion.origen.display }}
+            </div>
+          </div>
+          
+          <div class="distancia-info">
+            <div class="distancia-linea"></div>
+            <div class="distancia-datos">
+              <span class="distancia-valor">{{ cotizacionResultado.cotizacion.distancia.distanceText }}</span>
+              <span class="tiempo-valor">{{ cotizacionResultado.cotizacion.distancia.durationText }}</span>
+            </div>
+          </div>
+
+          <div class="ubicacion destino">
+            <span class="ubicacion-icon">🎯</span>
+            <div class="ubicacion-text">
+              <strong>Destino:</strong><br>
+              {{ cotizacionResultado.cotizacion.destino.display }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Selector de servicio -->
+        <div class="servicio-selector" *ngIf="cotizacionResultado.cotizacion.servicios.length > 1">
+          <h4>Tipo de servicio:</h4>
+          <div class="servicios-opciones">
+            <button 
+              *ngFor="let servicio of cotizacionResultado.cotizacion.servicios"
+              class="servicio-opcion"
+              [class.selected]="servicioSeleccionado === servicio.id"
+              (click)="cambiarServicio(servicio.id)"
+            >
+              <div class="servicio-nombre">{{ servicio.nombre }}</div>
+              <div class="servicio-tiempo">{{ servicio.tiempo_entrega }}</div>
+              <div class="servicio-precio">Desde {{ formatearPrecio(servicio.precio_base) }}</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Detalles de paquetes -->
+        <div class="paquetes-detalle">
+          <h4>Detalles de envío:</h4>
+          <div class="paquete-item" *ngFor="let paquete of cotizacionResultado.cotizacion.paquetes">
+            <div class="paquete-info">
+              <div class="paquete-nombre">
+                <strong>{{ paquete.nombre }}</strong>
+                <span class="paquete-cantidad" *ngIf="paquete.cantidad > 1">x{{ paquete.cantidad }}</span>
+              </div>
+              <div class="paquete-servicio">{{ getNombreServicio(paquete.serviceType) }}</div>
+            </div>
+            <div class="paquete-precio">
+              <div class="precio-individual">{{ formatearPrecio(paquete.total) }}</div>
+              <div class="precio-total" *ngIf="paquete.cantidad > 1">
+                Total: {{ formatearPrecio(paquete.total * paquete.cantidad) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desglose de precios -->
+        <div class="precio-desglose" *ngIf="cotizacionResultado.cotizacion.paquetes[0]?.breakdown">
+          <h4>Desglose de costos:</h4>
+          <div class="desglose-item" *ngFor="let item of getDesgloseItems(cotizacionResultado.cotizacion.paquetes[0].breakdown)">
+            <span class="desglose-concepto">{{ item.concepto }}</span>
+            <span class="desglose-valor">{{ formatearPrecio(item.valor) }}</span>
+          </div>
+        </div>
+
+        <!-- Total general -->
+        <div class="total-general">
+          <div class="total-label">Total General:</div>
+          <div class="total-valor">{{ formatearPrecio(cotizacionResultado.cotizacion.total_general) }} {{ cotizacionResultado.cotizacion.moneda }}</div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="info-adicional">
+          <div class="info-item">
+            <span class="info-icon">⏰</span>
+            <span>Tiempo estimado: {{ cotizacionResultado.cotizacion.tiempo_entrega }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-icon">📅</span>
+            <span>Cotización válida hasta: {{ formatearFecha(cotizacionResultado.cotizacion.valida_hasta) }}</span>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="resultado-acciones">
+          <button class="btn-proceder" (click)="procederConEnvio()">
+            <span class="btn-icon">📦</span>
+            Proceder con este envío
+          </button>
+          <button class="btn-nueva-cotizacion" (click)="nuevaCotizacion()">
+            <span class="btn-icon">🔄</span>
+            Nueva cotización
+          </button>
+        </div>
+
+      </div>
     </div>
 
     <!-- INFORMACIÓN ADICIONAL -->
@@ -246,3 +382,5 @@
     </div>
   </div>
 </div>
+
+

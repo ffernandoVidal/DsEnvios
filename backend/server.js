@@ -1,10 +1,11 @@
 // Backend con Integración Completa de Forza Ecommerce Engine
 require('dotenv').config();
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const cors = require('cors');
 const axios = require('axios');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3005;
@@ -22,18 +23,324 @@ const FORZA_CONFIG = {
     timeout: 30000
 };
 
+// Configuración de Google Maps API
+const GOOGLE_MAPS_CONFIG = {
+    apiKey: process.env.GOOGLE_MAPS_API_KEY || '',
+    baseUrl: 'https://maps.googleapis.com/maps/api',
+    enabled: process.env.GOOGLE_MAPS_API_KEY ? true : false
+};
+
 let db = null;
 let mongoClient = null;
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:4200'],
+    origin: ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:4200', 'http://localhost:52079'],
     credentials: true
 }));
 app.use(express.json());
 
+// ============================================
+// MIDDLEWARE DE AUTENTICACIÓN
+// ============================================
+
+// Clave secreta para JWT
+const JWT_SECRET = process.env.JWT_SECRET || 'ds-envios-secret-key-2024';
+
+// Middleware para autenticar tokens JWT
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: 'Token de acceso requerido'
+        });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({
+                success: false,
+                message: 'Token inválido o expirado'
+            });
+        }
+
+        req.user = user;
+        next();
+    });
+}
+
 console.log('🚀 Iniciando servidor con integración Forza Ecommerce Engine...');
 console.log('🔧 Forza API habilitada:', FORZA_CONFIG.enabled);
+console.log('🗺️ Google Maps API habilitada:', GOOGLE_MAPS_CONFIG.enabled);
+
+// ============================================
+// CONFIGURACIÓN DE PRECIOS FORZA
+// ============================================
+const FORZA_PRICING = {
+    // Tarifas base por tipo de servicio (en GTQ)
+    basePrices: {
+        standard: 15.00,     // Envío estándar (3-5 días)
+        express: 25.00,      // Envío express (1-2 días)
+        overnight: 45.00     // Envío nocturno (24 horas)
+    },
+    
+    // Tarifas por peso (GTQ por kg)
+    weightRates: {
+        standard: 3.50,      // Q3.50 por kg adicional
+        express: 5.00,       // Q5.00 por kg adicional
+        overnight: 8.00      // Q8.00 por kg adicional
+    },
+    
+    // Tarifas por distancia (GTQ por km)
+    distanceRates: {
+        local: 0.05,         // Dentro del mismo departamento
+        regional: 0.08,      // Entre departamentos cercanos
+        national: 0.12       // Entre departamentos lejanos
+    },
+    
+    // Seguro por valor declarado (% del valor)
+    insuranceRate: 0.015,    // 1.5% del valor declarado
+    
+    // Recargos adicionales
+    surcharges: {
+        fuelSurcharge: 0.08,     // 8% recargo por combustible
+        handlingSurcharge: 2.00,  // Q2.00 recargo por manejo
+        remoteAreaSurcharge: 10.00, // Q10.00 para áreas remotas
+        oversizePackage: 15.00    // Q15.00 para paquetes grandes
+    },
+    
+    // Límites de peso y dimensiones
+    limits: {
+        maxWeight: 50,        // kg máximo por paquete
+        maxDimension: 150,    // cm máximo por lado
+        maxVolume: 0.2        // m³ máximo
+    }
+};
+
+// ============================================
+// SERVICIOS DE CÁLCULO DE DISTANCIA
+// ============================================
+
+/**
+ * Calcula la distancia entre dos ubicaciones usando Google Distance Matrix API
+ */
+async function calculateDistance(origin, destination) {
+    if (!GOOGLE_MAPS_CONFIG.enabled) {
+        console.log('⚠️ Google Maps API no configurada, usando cálculo estimado');
+        return estimateDistanceLocal(origin, destination);
+    }
+
+    try {
+        const url = `${GOOGLE_MAPS_CONFIG.baseUrl}/distancematrix/json`;
+        const params = {
+            origins: `${origin.city}, ${origin.state || origin.department || ''}, Guatemala`,
+            destinations: `${destination.city}, ${destination.state || destination.department || ''}, Guatemala`,
+            key: GOOGLE_MAPS_CONFIG.apiKey,
+            units: 'metric',
+            language: 'es',
+            region: 'gt'
+        };
+
+        console.log('🗺️ Calculando distancia con Google Maps API...');
+        const response = await axios.get(url, { params, timeout: 10000 });
+
+        if (response.data.status === 'OK' && response.data.rows[0].elements[0].status === 'OK') {
+            const element = response.data.rows[0].elements[0];
+            const distanceData = {
+                distance: element.distance.value / 1000, // Convertir a km
+                duration: element.duration.value / 60,   // Convertir a minutos
+                distanceText: element.distance.text,
+                durationText: element.duration.text,
+                source: 'google_maps'
+            };
+
+            console.log('✅ Distancia calculada:', distanceData);
+            return distanceData;
+        } else {
+            console.log('⚠️ Google Maps API sin resultados, usando estimación local');
+            return estimateDistanceLocal(origin, destination);
+        }
+    } catch (error) {
+        console.error('❌ Error calculando distancia con Google Maps:', error.message);
+        return estimateDistanceLocal(origin, destination);
+    }
+}
+
+/**
+ * Estimación local de distancia basada en departamentos de Guatemala
+ */
+function estimateDistanceLocal(origin, destination) {
+    // Simplificación: estimar distancia basada en departamentos
+    const departmentDistances = {
+        'Guatemala': { 'Guatemala': 25, 'Sacatepéquez': 45, 'Chimaltenango': 65, 'Escuintla': 85 },
+        'Sacatepéquez': { 'Guatemala': 45, 'Sacatepéquez': 20, 'Chimaltenango': 35, 'Escuintla': 70 },
+        'Chimaltenango': { 'Guatemala': 65, 'Sacatepéquez': 35, 'Chimaltenango': 25, 'Escuintla': 90 },
+        'Escuintla': { 'Guatemala': 85, 'Sacatepéquez': 70, 'Chimaltenango': 90, 'Escuintla': 30 },
+        // Agregar más departamentos según sea necesario
+    };
+
+    const originDept = origin.department || extractDepartmentFromCity(origin.city);
+    const destDept = destination.department || extractDepartmentFromCity(destination.city);
+    
+    let estimatedDistance = 100; // Distancia por defecto
+    
+    if (departmentDistances[originDept] && departmentDistances[originDept][destDept]) {
+        estimatedDistance = departmentDistances[originDept][destDept];
+    }
+
+    return {
+        distance: estimatedDistance,
+        duration: estimatedDistance * 1.5, // Estimación: 1.5 minutos por km
+        distanceText: `${estimatedDistance} km (estimado)`,
+        durationText: `${Math.round(estimatedDistance * 1.5)} min (estimado)`,
+        source: 'local_estimation'
+    };
+}
+
+/**
+ * Extrae el departamento de una ciudad conocida
+ */
+function extractDepartmentFromCity(cityName) {
+    const cityToDepartment = {
+        'Guatemala': 'Guatemala',
+        'Mixco': 'Guatemala',
+        'Villa Nueva': 'Guatemala',
+        'Antigua Guatemala': 'Sacatepéquez',
+        'Chimaltenango': 'Chimaltenango',
+        'Escuintla': 'Escuintla',
+        'Quetzaltenango': 'Quetzaltenango',
+        // Agregar más ciudades según sea necesario
+    };
+    
+    return cityToDepartment[cityName] || 'Guatemala';
+}
+
+/**
+ * Calcula el costo de envío usando las tarifas de Forza
+ */
+async function calculateShippingCost(origin, destination, packageDetails, serviceType = 'standard') {
+    try {
+        console.log('💰 Calculando costo de envío con tarifas Forza...');
+        
+        // 1. Calcular distancia
+        const distanceData = await calculateDistance(origin, destination);
+        
+        // 2. Obtener tarifas base
+        const basePrice = FORZA_PRICING.basePrices[serviceType] || FORZA_PRICING.basePrices.standard;
+        const weightRate = FORZA_PRICING.weightRates[serviceType] || FORZA_PRICING.weightRates.standard;
+        
+        // 3. Calcular costo por peso
+        const weight = packageDetails.weight || 1;
+        const weightCost = Math.max(0, weight - 1) * weightRate; // Primer kg incluido
+        
+        // 4. Calcular costo por distancia
+        const distanceType = getDistanceType(distanceData.distance);
+        const distanceCost = distanceData.distance * FORZA_PRICING.distanceRates[distanceType];
+        
+        // 5. Calcular seguro
+        const declaredValue = packageDetails.declared_value || 0;
+        const insuranceCost = declaredValue * FORZA_PRICING.insuranceRate;
+        
+        // 6. Verificar si es paquete grande
+        const isOversized = checkOversizedPackage(packageDetails);
+        const oversizeCost = isOversized ? FORZA_PRICING.surcharges.oversizePackage : 0;
+        
+        // 7. Aplicar recargos
+        const subtotal = basePrice + weightCost + distanceCost + insuranceCost + oversizeCost;
+        const fuelSurcharge = subtotal * FORZA_PRICING.surcharges.fuelSurcharge;
+        const handlingSurcharge = FORZA_PRICING.surcharges.handlingSurcharge;
+        
+        // 8. Total final
+        const total = subtotal + fuelSurcharge + handlingSurcharge;
+        
+        // 9. Calcular tiempo estimado de entrega
+        const estimatedDelivery = calculateDeliveryTime(serviceType, distanceData.distance);
+        
+        const breakdown = {
+            basePrice: parseFloat(basePrice.toFixed(2)),
+            weightCost: parseFloat(weightCost.toFixed(2)),
+            distanceCost: parseFloat(distanceCost.toFixed(2)),
+            insuranceCost: parseFloat(insuranceCost.toFixed(2)),
+            oversizeCost: parseFloat(oversizeCost.toFixed(2)),
+            fuelSurcharge: parseFloat(fuelSurcharge.toFixed(2)),
+            handlingSurcharge: parseFloat(handlingSurcharge.toFixed(2)),
+            subtotal: parseFloat(subtotal.toFixed(2)),
+            total: parseFloat(total.toFixed(2))
+        };
+        
+        console.log('✅ Costo calculado:', breakdown);
+        
+        return {
+            success: true,
+            pricing: {
+                total: breakdown.total,
+                currency: 'GTQ',
+                breakdown,
+                distanceData,
+                estimatedDelivery,
+                serviceType,
+                validUntil: new Date(Date.now() + 24 * 60 * 60 * 1000) // Válido por 24 horas
+            }
+        };
+        
+    } catch (error) {
+        console.error('❌ Error calculando costo de envío:', error);
+        throw error;
+    }
+}
+
+/**
+ * Determina el tipo de distancia para aplicar tarifa correcta
+ */
+function getDistanceType(distance) {
+    if (distance <= 50) return 'local';
+    if (distance <= 150) return 'regional';
+    return 'national';
+}
+
+/**
+ * Verifica si un paquete es considerado grande
+ */
+function checkOversizedPackage(packageDetails) {
+    const { length = 0, width = 0, height = 0, weight = 0 } = packageDetails;
+    const maxDim = Math.max(length, width, height);
+    const volume = (length * width * height) / 1000000; // Convertir a m³
+    
+    return weight > FORZA_PRICING.limits.maxWeight ||
+           maxDim > FORZA_PRICING.limits.maxDimension ||
+           volume > FORZA_PRICING.limits.maxVolume;
+}
+
+/**
+ * Calcula tiempo estimado de entrega
+ */
+function calculateDeliveryTime(serviceType, distance) {
+    const baseDays = {
+        standard: { min: 3, max: 5 },
+        express: { min: 1, max: 2 },
+        overnight: { min: 1, max: 1 }
+    };
+    
+    let days = baseDays[serviceType] || baseDays.standard;
+    
+    // Agregar días adicionales para distancias largas
+    if (distance > 200) {
+        days.min += 1;
+        days.max += 2;
+    } else if (distance > 100) {
+        days.min += 0;
+        days.max += 1;
+    }
+    
+    if (days.min === days.max) {
+        return `${days.min} día${days.min > 1 ? 's' : ''} laboral${days.min > 1 ? 'es' : ''}`;
+    } else {
+        return `${days.min}-${days.max} días laborales`;
+    }
+}
 
 // ============================================
 // CONEXIÓN A MONGODB
@@ -49,6 +356,7 @@ async function connectToMongoDB() {
         console.log('✅ MongoDB conectado exitosamente:', DB_NAME);
         
         await createDefaultUsers();
+        await initializeCollections();
         return true;
     } catch (error) {
         console.error('❌ Error conectando a MongoDB:', error.message);
@@ -95,6 +403,318 @@ async function createDefaultUsers() {
         }
     } catch (error) {
         console.error('❌ Error creando usuarios:', error.message);
+    }
+}
+
+// Inicializar colecciones y índices para el sistema de cotizaciones
+async function initializeCollections() {
+    try {
+        console.log('🔧 Inicializando colecciones de base de datos...');
+        
+        // Crear índices para colección de cotizaciones
+        const quotations = db.collection('quotations');
+        await quotations.createIndex({ "id": 1 }, { unique: true });
+        await quotations.createIndex({ "created_at": -1 });
+        await quotations.createIndex({ "origen.ciudad": 1, "destino.ciudad": 1 });
+        await quotations.createIndex({ "user_ip": 1 });
+        await quotations.createIndex({ "valida_hasta": 1 });
+        
+        // Crear índices para colección de precios (para futuras configuraciones)
+        const pricing = db.collection('pricing_config');
+        await pricing.createIndex({ "service_type": 1 });
+        await pricing.createIndex({ "effective_date": -1 });
+        await pricing.createIndex({ "active": 1 });
+        
+        // Crear configuración de precios por defecto si no existe
+        const existingPricing = await pricing.countDocuments({ active: true });
+        if (existingPricing === 0) {
+            await pricing.insertOne({
+                id: 'forza_default_2024',
+                name: 'Configuración de Precios Forza 2024',
+                active: true,
+                effective_date: new Date(),
+                pricing_config: FORZA_PRICING,
+                created_at: new Date(),
+                created_by: 'system'
+            });
+            console.log('💰 Configuración de precios por defecto creada');
+        }
+        
+        // Crear índices para tracking de distancias (cache)
+        const distanceCache = db.collection('distance_cache');
+        await distanceCache.createIndex({ 
+            "origin_key": 1, 
+            "destination_key": 1 
+        }, { unique: true });
+        await distanceCache.createIndex({ "created_at": 1 }, { expireAfterSeconds: 604800 }); // 7 días TTL
+        
+        // ============================================
+        // NUEVAS COLECCIONES PARA FORMULARIO DE ENVÍOS
+        // ============================================
+        
+        // Colección de direcciones frecuentes
+        const frequentAddresses = db.collection('frequent_addresses');
+        await frequentAddresses.createIndex({ "userId": 1, "category": 1 });
+        await frequentAddresses.createIndex({ "userId": 1, "isPrimary": 1 });
+        await frequentAddresses.createIndex({ "userId": 1, "lastUsed": -1 });
+        await frequentAddresses.createIndex({ "isActive": 1 });
+        await frequentAddresses.createIndex({ "nickname": "text", "contactName": "text" });
+        
+        // Colección de métodos de pago
+        const paymentMethods = db.collection('payment_methods');
+        await paymentMethods.createIndex({ "methodId": 1 }, { unique: true });
+        await paymentMethods.createIndex({ "isActive": 1 });
+        await paymentMethods.createIndex({ "type": 1 });
+        
+        // Crear métodos de pago por defecto
+        const existingPaymentMethods = await paymentMethods.countDocuments();
+        if (existingPaymentMethods === 0) {
+            const defaultPaymentMethods = [
+                {
+                    methodId: "contra_entrega",
+                    displayName: "Cobro contra entrega",
+                    description: "Pago al recibir el paquete",
+                    type: "cash_on_delivery",
+                    isActive: true,
+                    requiresVerification: false,
+                    fees: {
+                        fixedAmount: 4.00,
+                        percentageRate: 0,
+                        minimumCharge: 4.00,
+                        maximumCharge: null,
+                        currency: "GTQ"
+                    },
+                    restrictions: {
+                        maxOrderValue: 5000.00,
+                        minOrderValue: 1.00,
+                        allowedRegions: ["all"],
+                        excludedRegions: [],
+                        requiresDocument: true
+                    },
+                    settings: {
+                        collectionTimeout: 3,
+                        verificationRequired: false,
+                        allowPartialPayment: false,
+                        refundable: true
+                    },
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                },
+                {
+                    methodId: "cobro_cuenta",
+                    displayName: "Cobro a mi cuenta",
+                    description: "Facturación posterior",
+                    type: "account_billing",
+                    isActive: true,
+                    requiresVerification: true,
+                    fees: {
+                        fixedAmount: 0.00,
+                        percentageRate: 0,
+                        minimumCharge: 0.00,
+                        maximumCharge: null,
+                        currency: "GTQ"
+                    },
+                    restrictions: {
+                        maxOrderValue: 10000.00,
+                        minOrderValue: 1.00,
+                        allowedRegions: ["all"],
+                        excludedRegions: [],
+                        requiresDocument: false
+                    },
+                    settings: {
+                        collectionTimeout: 30,
+                        verificationRequired: true,
+                        allowPartialPayment: true,
+                        refundable: true
+                    },
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                },
+                {
+                    methodId: "tarjeta_credito",
+                    displayName: "Pago con tarjeta de crédito o débito",
+                    description: "Pago inmediato en línea",
+                    type: "card_payment",
+                    isActive: true,
+                    requiresVerification: false,
+                    fees: {
+                        fixedAmount: 0.00,
+                        percentageRate: 2.5,
+                        minimumCharge: 1.00,
+                        maximumCharge: null,
+                        currency: "GTQ"
+                    },
+                    restrictions: {
+                        maxOrderValue: 15000.00,
+                        minOrderValue: 5.00,
+                        allowedRegions: ["all"],
+                        excludedRegions: [],
+                        requiresDocument: false
+                    },
+                    settings: {
+                        collectionTimeout: 0,
+                        verificationRequired: false,
+                        allowPartialPayment: false,
+                        refundable: true
+                    },
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            ];
+            
+            await paymentMethods.insertMany(defaultPaymentMethods);
+            console.log('💳 Métodos de pago por defecto creados');
+        }
+        
+        // Colección de tipos de paquetes
+        const packageTypes = db.collection('package_types');
+        await packageTypes.createIndex({ "typeId": 1 }, { unique: true });
+        await packageTypes.createIndex({ "isActive": 1 });
+        await packageTypes.createIndex({ "category": 1 });
+        await packageTypes.createIndex({ "displayOrder": 1 });
+        
+        // Crear tipos de paquetes por defecto
+        const existingPackageTypes = await packageTypes.countDocuments();
+        if (existingPackageTypes === 0) {
+            const defaultPackageTypes = [
+                {
+                    typeId: "documento_express",
+                    displayName: "Documento Express",
+                    category: "documents",
+                    specifications: {
+                        maxWeight: 2.0,
+                        maxDimensions: { length: 35, width: 25, height: 5 },
+                        fragile: false,
+                        stackable: true,
+                        requiresSignature: true
+                    },
+                    pricing: {
+                        basePrice: 25.00,
+                        priceModifier: 1.0,
+                        includedServices: ["basic_packaging", "tracking", "delivery_confirmation"],
+                        excludedServices: ["insurance_premium"]
+                    },
+                    contentRestrictions: {
+                        allowedItems: ["documents", "contracts", "certificates", "photos"],
+                        prohibitedItems: ["cash", "jewelry", "electronics"],
+                        requiresDeclaration: false
+                    },
+                    deliveryOptions: {
+                        availableServices: ["standard", "express"],
+                        defaultService: "express",
+                        maxDeliveryDays: 2,
+                        trackingLevel: "detailed"
+                    },
+                    isActive: true,
+                    displayOrder: 1,
+                    createdAt: new Date()
+                },
+                {
+                    typeId: "paquete_pequeno",
+                    displayName: "Paquete Pequeño",
+                    category: "packages",
+                    specifications: {
+                        maxWeight: 5.0,
+                        maxDimensions: { length: 30, width: 20, height: 15 },
+                        fragile: false,
+                        stackable: true,
+                        requiresSignature: false
+                    },
+                    pricing: {
+                        basePrice: 35.00,
+                        priceModifier: 1.2,
+                        includedServices: ["basic_packaging", "tracking"],
+                        excludedServices: []
+                    },
+                    contentRestrictions: {
+                        allowedItems: ["clothing", "books", "toys", "accessories"],
+                        prohibitedItems: ["hazardous", "fragile_electronics"],
+                        requiresDeclaration: false
+                    },
+                    deliveryOptions: {
+                        availableServices: ["standard", "express", "overnight"],
+                        defaultService: "standard",
+                        maxDeliveryDays: 5,
+                        trackingLevel: "basic"
+                    },
+                    isActive: true,
+                    displayOrder: 2,
+                    createdAt: new Date()
+                },
+                {
+                    typeId: "paquete_mediano",
+                    displayName: "Paquete Mediano",
+                    category: "packages",
+                    specifications: {
+                        maxWeight: 15.0,
+                        maxDimensions: { length: 50, width: 40, height: 30 },
+                        fragile: false,
+                        stackable: true,
+                        requiresSignature: true
+                    },
+                    pricing: {
+                        basePrice: 50.00,
+                        priceModifier: 1.5,
+                        includedServices: ["basic_packaging", "tracking", "delivery_confirmation"],
+                        excludedServices: []
+                    },
+                    contentRestrictions: {
+                        allowedItems: ["electronics", "appliances", "clothing", "books"],
+                        prohibitedItems: ["hazardous", "illegal"],
+                        requiresDeclaration: true
+                    },
+                    deliveryOptions: {
+                        availableServices: ["standard", "express"],
+                        defaultService: "standard",
+                        maxDeliveryDays: 7,
+                        trackingLevel: "detailed"
+                    },
+                    isActive: true,
+                    displayOrder: 3,
+                    createdAt: new Date()
+                },
+                {
+                    typeId: "fragil_especial",
+                    displayName: "Artículo Frágil",
+                    category: "fragile",
+                    specifications: {
+                        maxWeight: 10.0,
+                        maxDimensions: { length: 40, width: 30, height: 25 },
+                        fragile: true,
+                        stackable: false,
+                        requiresSignature: true
+                    },
+                    pricing: {
+                        basePrice: 75.00,
+                        priceModifier: 2.0,
+                        includedServices: ["special_packaging", "tracking", "delivery_confirmation", "fragile_handling"],
+                        excludedServices: []
+                    },
+                    contentRestrictions: {
+                        allowedItems: ["glassware", "ceramics", "artwork", "electronics"],
+                        prohibitedItems: ["extremely_fragile", "oversized"],
+                        requiresDeclaration: true
+                    },
+                    deliveryOptions: {
+                        availableServices: ["express", "overnight"],
+                        defaultService: "express",
+                        maxDeliveryDays: 3,
+                        trackingLevel: "premium"
+                    },
+                    isActive: true,
+                    displayOrder: 4,
+                    createdAt: new Date()
+                }
+            ];
+            
+            await packageTypes.insertMany(defaultPackageTypes);
+            console.log('📦 Tipos de paquetes por defecto creados');
+        }
+        
+        console.log('✅ Colecciones e índices inicializados correctamente');
+        
+    } catch (error) {
+        console.error('❌ Error inicializando colecciones:', error.message);
     }
 }
 
@@ -179,62 +799,343 @@ app.get('/api/db-status', (req, res) => {
 });
 
 // ============================================
-// ENDPOINTS DE AUTENTICACIÓN
+// ENDPOINTS DE ENVÍOS (SHIPMENTS)
 // ============================================
 
-// Login
-app.post('/api/login', async (req, res) => {
+// Crear nuevo envío
+app.post('/api/shipments', authenticateToken, async (req, res) => {
     try {
-        const { username, password } = req.body;
+        console.log('📦 Creando nuevo envío...');
+        console.log('Usuario autenticado:', req.user);
+        console.log('Datos del envío:', JSON.stringify(req.body, null, 2));
 
-        if (!username || !password) {
+        const {
+            senderName,
+            senderPhone,
+            senderEmail,
+            receiverName,
+            receiverPhone,
+            receiverEmail,
+            packageWeight,
+            packageDimensions,
+            packageDescription,
+            packageValue,
+            fragile,
+            senderAddress,
+            receiverAddress,
+            serviceType,
+            paymentMethod,
+            additionalServices,
+            notes
+        } = req.body;
+
+        // Validaciones requeridas
+        if (!senderName || !senderPhone || !receiverName || !receiverPhone) {
             return res.status(400).json({
                 success: false,
-                message: 'Usuario y contraseña son requeridos'
+                message: 'Datos de remitente y destinatario son requeridos'
             });
         }
 
-        if (!db) {
-            return res.status(500).json({
+        if (!packageWeight || !packageDescription) {
+            return res.status(400).json({
                 success: false,
-                message: 'Error de conexión a la base de datos'
+                message: 'Peso y descripción del paquete son requeridos'
             });
         }
 
-        const user = await db.collection('users').findOne({ username });
-        
-        if (!user) {
-            return res.status(401).json({
+        if (!senderAddress || !receiverAddress) {
+            return res.status(400).json({
                 success: false,
-                message: 'Usuario no encontrado'
+                message: 'Direcciones de origen y destino son requeridas'
             });
         }
 
-        const validPassword = await bcrypt.compare(password, user.password);
-        
-        if (!validPassword) {
-            return res.status(401).json({
+        if (!serviceType || !paymentMethod) {
+            return res.status(400).json({
                 success: false,
-                message: 'Contraseña incorrecta'
+                message: 'Tipo de servicio y método de pago son requeridos'
             });
         }
 
-        const userResponse = {
-            id: user._id,
-            username: user.username,
-            name: user.name,
-            role: user.role,
-            email: user.email
+        // Generar número de tracking único
+        const trackingNumber = `DS${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+
+        // Calcular precio base del envío
+        let basePrice = 0;
+        if (packageWeight <= 1) {
+            basePrice = 25;
+        } else if (packageWeight <= 5) {
+            basePrice = 35;
+        } else if (packageWeight <= 10) {
+            basePrice = 50;
+        } else {
+            basePrice = 50 + ((packageWeight - 10) * 5);
+        }
+
+        // Ajustar precio según tipo de servicio
+        let finalPrice = basePrice;
+        switch (serviceType) {
+            case 'express':
+                finalPrice = basePrice * 1.5;
+                break;
+            case 'overnight':
+                finalPrice = basePrice * 2.0;
+                break;
+            case 'same-day':
+                finalPrice = basePrice * 2.5;
+                break;
+        }
+
+        // Agregar servicios adicionales
+        if (additionalServices) {
+            if (additionalServices.includes('insurance') && packageValue) {
+                finalPrice += packageValue * 0.02; // 2% del valor del paquete
+            }
+            if (additionalServices.includes('signature')) {
+                finalPrice += 10;
+            }
+            if (additionalServices.includes('packaging')) {
+                finalPrice += 15;
+            }
+        }
+
+        // Crear objeto de envío
+        const newShipment = {
+            trackingNumber,
+            status: 'pending',
+            createdBy: req.user.id,
+            createdByRole: req.user.role,
+            sender: {
+                name: senderName,
+                phone: senderPhone,
+                email: senderEmail || null,
+                address: senderAddress
+            },
+            receiver: {
+                name: receiverName,
+                phone: receiverPhone,
+                email: receiverEmail || null,
+                address: receiverAddress
+            },
+            package: {
+                weight: parseFloat(packageWeight),
+                dimensions: packageDimensions || null,
+                description: packageDescription,
+                value: packageValue ? parseFloat(packageValue) : null,
+                fragile: fragile || false
+            },
+            service: {
+                type: serviceType,
+                additionalServices: additionalServices || []
+            },
+            payment: {
+                method: paymentMethod,
+                amount: Math.round(finalPrice * 100) / 100, // Redondear a 2 decimales
+                status: 'pending'
+            },
+            notes: notes || null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            timeline: [{
+                status: 'pending',
+                timestamp: new Date(),
+                description: 'Envío creado exitosamente',
+                location: senderAddress.department || 'Guatemala'
+            }]
         };
 
-        res.json({
+        // Insertar en base de datos
+        const result = await db.collection('shipments').insertOne(newShipment);
+
+        console.log('✅ Envío creado exitosamente:', trackingNumber);
+
+        res.status(201).json({
             success: true,
-            message: 'Login exitoso',
-            user: userResponse
+            message: 'Envío creado exitosamente',
+            data: {
+                trackingNumber,
+                shipmentId: result.insertedId,
+                estimatedPrice: newShipment.payment.amount,
+                status: 'pending'
+            }
         });
 
     } catch (error) {
-        console.error('❌ Error en login:', error);
+        console.error('❌ Error al crear envío:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor al crear el envío'
+        });
+    }
+});
+
+// Obtener envíos del usuario (según rol)
+app.get('/api/shipments', authenticateToken, async (req, res) => {
+    try {
+        console.log('📋 Obteniendo envíos para usuario:', req.user);
+
+        let query = {};
+        
+        // Filtrar según el rol del usuario
+        if (req.user.role === 'user') {
+            // Los usuarios solo ven sus propios envíos
+            query.createdBy = req.user.id;
+        } else if (req.user.role === 'operator') {
+            // Los operadores ven envíos que pueden gestionar
+            query.$or = [
+                { createdBy: req.user.id },
+                { status: { $in: ['pending', 'in-transit', 'delivered'] } }
+            ];
+        }
+        // Los administradores ven todos los envíos (sin filtro)
+
+        const shipments = await db.collection('shipments')
+            .find(query)
+            .sort({ createdAt: -1 })
+            .toArray();
+
+        console.log(`✅ Se encontraron ${shipments.length} envíos`);
+
+        res.json({
+            success: true,
+            data: shipments
+        });
+
+    } catch (error) {
+        console.error('❌ Error al obtener envíos:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Obtener envío por tracking number
+app.get('/api/shipments/track/:trackingNumber', async (req, res) => {
+    try {
+        const { trackingNumber } = req.params;
+        console.log('🔍 Rastreando envío:', trackingNumber);
+
+        const shipment = await db.collection('shipments').findOne({
+            trackingNumber: trackingNumber
+        });
+
+        if (!shipment) {
+            return res.status(404).json({
+                success: false,
+                message: 'Número de seguimiento no encontrado'
+            });
+        }
+
+        // Información pública del envío (sin datos sensibles)
+        const publicShipmentInfo = {
+            trackingNumber: shipment.trackingNumber,
+            status: shipment.status,
+            sender: {
+                name: shipment.sender.name,
+                address: {
+                    department: shipment.sender.address.department,
+                    municipality: shipment.sender.address.municipality
+                }
+            },
+            receiver: {
+                name: shipment.receiver.name,
+                address: {
+                    department: shipment.receiver.address.department,
+                    municipality: shipment.receiver.address.municipality
+                }
+            },
+            package: {
+                description: shipment.package.description,
+                weight: shipment.package.weight
+            },
+            service: shipment.service,
+            timeline: shipment.timeline,
+            createdAt: shipment.createdAt
+        };
+
+        console.log('✅ Envío encontrado');
+
+        res.json({
+            success: true,
+            data: publicShipmentInfo
+        });
+
+    } catch (error) {
+        console.error('❌ Error al rastrear envío:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Actualizar estado de envío (solo admin y operadores)
+app.put('/api/shipments/:id/status', authenticateToken, async (req, res) => {
+    try {
+        // Verificar permisos
+        if (req.user.role === 'user') {
+            return res.status(403).json({
+                success: false,
+                message: 'No tienes permisos para actualizar envíos'
+            });
+        }
+
+        const { id } = req.params;
+        const { status, location, description } = req.body;
+
+        if (!status) {
+            return res.status(400).json({
+                success: false,
+                message: 'Estado es requerido'
+            });
+        }
+
+        const validStatuses = ['pending', 'confirmed', 'picked-up', 'in-transit', 'delivered', 'cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Estado no válido'
+            });
+        }
+
+        // Actualizar envío
+        const updateData = {
+            status,
+            updatedAt: new Date(),
+            $push: {
+                timeline: {
+                    status,
+                    timestamp: new Date(),
+                    description: description || `Estado actualizado a ${status}`,
+                    location: location || 'Guatemala',
+                    updatedBy: req.user.username
+                }
+            }
+        };
+
+        const result = await db.collection('shipments').updateOne(
+            { _id: new ObjectId(id) },
+            updateData
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Envío no encontrado'
+            });
+        }
+
+        console.log('✅ Estado de envío actualizado:', id);
+
+        res.json({
+            success: true,
+            message: 'Estado actualizado exitosamente'
+        });
+
+    } catch (error) {
+        console.error('❌ Error al actualizar estado:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor'
@@ -824,30 +1725,215 @@ async function generateLocalQuote(origin, destination, packageDetails) {
 // ENDPOINT DE COTIZACIÓN LEGACY (COMPATIBILIDAD)
 // ============================================
 
+// ============================================
+// ENDPOINT DE COTIZACIÓN MEJORADO
+// ============================================
+
 app.post('/api/cotizar', async (req, res) => {
     try {
-        const { origen, destino, peso, alto, ancho, largo, valor_declarado } = req.body;
+        console.log('📦 Nueva solicitud de cotización:', req.body);
+        
+        const { 
+            origen, 
+            destino, 
+            paquetes, 
+            servicio = 'standard',
+            // Compatibilidad con formato legacy
+            peso, 
+            alto, 
+            ancho, 
+            largo, 
+            valor_declarado 
+        } = req.body;
 
-        // Convertir formato legacy a formato Forza
-        const origin = { city: origen, country: 'GT' };
-        const destination = { city: destino, country: 'GT' };
-        const package_details = {
-            weight: peso,
-            length: largo,
-            width: ancho,
-            height: alto,
-            declared_value: valor_declarado
+        // Validaciones básicas
+        if (!origen || !destino) {
+            return res.status(400).json({
+                success: false,
+                message: 'Origen y destino son requeridos',
+                error: 'MISSING_LOCATIONS'
+            });
+        }
+
+        // Preparar datos de ubicaciones
+        const origin = {
+            city: typeof origen === 'string' ? origen.split(',')[0].trim() : origen.city,
+            department: typeof origen === 'string' ? origen.split(',')[1]?.trim() : origen.department,
+            country: 'GT'
         };
 
-        const quote = await generateLocalQuote(origin, destination, package_details);
-        res.json(quote);
+        const destination = {
+            city: typeof destino === 'string' ? destino.split(',')[0].trim() : destino.city,
+            department: typeof destino === 'string' ? destino.split(',')[1]?.trim() : destino.department,
+            country: 'GT'
+        };
+
+        let cotizaciones = [];
+
+        // Procesar múltiples paquetes o formato legacy
+        if (paquetes && Array.isArray(paquetes) && paquetes.length > 0) {
+            // Formato nuevo: múltiples paquetes
+            for (const paquete of paquetes) {
+                const packageDetails = {
+                    weight: paquete.peso || paquete.weight || 1,
+                    length: paquete.largo || paquete.length || 20,
+                    width: paquete.ancho || paquete.width || 20,
+                    height: paquete.alto || paquete.height || 20,
+                    declared_value: paquete.valor_declarado || paquete.declared_value || 0,
+                    quantity: paquete.cantidad || paquete.quantity || 1,
+                    type: paquete.tipo || paquete.type || 'standard'
+                };
+
+                const result = await calculateShippingCost(origin, destination, packageDetails, servicio);
+                
+                if (result.success) {
+                    cotizaciones.push({
+                        paquete_id: paquete.id || `pkg_${cotizaciones.length + 1}`,
+                        nombre: paquete.nombrePersonalizado || paquete.name || `Paquete ${cotizaciones.length + 1}`,
+                        cantidad: packageDetails.quantity,
+                        ...result.pricing
+                    });
+                }
+            }
+        } else {
+            // Formato legacy: un solo paquete
+            const packageDetails = {
+                weight: peso || 1,
+                length: largo || 20,
+                width: ancho || 20,
+                height: alto || 20,
+                declared_value: valor_declarado || 0
+            };
+
+            const result = await calculateShippingCost(origin, destination, packageDetails, servicio);
+            
+            if (result.success) {
+                cotizaciones.push({
+                    paquete_id: 'pkg_1',
+                    nombre: 'Paquete 1',
+                    cantidad: 1,
+                    ...result.pricing
+                });
+            }
+        }
+
+        if (cotizaciones.length === 0) {
+            return res.status(500).json({
+                success: false,
+                message: 'No se pudo calcular la cotización',
+                error: 'CALCULATION_FAILED'
+            });
+        }
+
+        // Calcular totales
+        const totalGeneral = cotizaciones.reduce((sum, cot) => sum + (cot.total * cot.cantidad), 0);
+        const distanceData = cotizaciones[0].distanceData;
+        const estimatedDelivery = cotizaciones[0].estimatedDelivery;
+
+        // Generar opciones de servicio
+        const servicios = await generateServiceOptions(origin, destination, cotizaciones[0]);
+
+        const response = {
+            success: true,
+            cotizacion: {
+                id: `quote_${Date.now()}`,
+                origen: {
+                    ciudad: origin.city,
+                    departamento: origin.department,
+                    display: `${origin.city}${origin.department ? ', ' + origin.department : ''}`
+                },
+                destino: {
+                    ciudad: destination.city,
+                    departamento: destination.department,
+                    display: `${destination.city}${destination.department ? ', ' + destination.department : ''}`
+                },
+                distancia: distanceData,
+                paquetes: cotizaciones,
+                servicios: servicios,
+                total_general: parseFloat(totalGeneral.toFixed(2)),
+                moneda: 'GTQ',
+                tiempo_entrega: estimatedDelivery,
+                valida_hasta: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                generada_en: new Date().toISOString()
+            },
+            message: 'Cotización generada exitosamente'
+        };
+
+        // Guardar cotización en base de datos
+        if (db) {
+            try {
+                await db.collection('quotations').insertOne({
+                    ...response.cotizacion,
+                    request_data: req.body,
+                    user_ip: req.ip,
+                    user_agent: req.get('User-Agent'),
+                    created_at: new Date()
+                });
+                console.log('✅ Cotización guardada en base de datos');
+            } catch (dbError) {
+                console.error('⚠️ Error guardando cotización en DB:', dbError.message);
+            }
+        }
+
+        console.log('✅ Cotización generada exitosamente:', response.cotizacion.id);
+        res.json(response);
+
     } catch (error) {
+        console.error('❌ Error en endpoint de cotización:', error);
         res.status(500).json({
             success: false,
-            message: 'Error generando cotización'
+            message: 'Error interno del servidor al generar cotización',
+            error: error.message
         });
     }
 });
+
+/**
+ * Genera opciones de servicios disponibles
+ */
+async function generateServiceOptions(origin, destination, baseCotizacion) {
+    const services = ['standard', 'express', 'overnight'];
+    const opciones = [];
+
+    for (const serviceType of services) {
+        try {
+            const packageDetails = {
+                weight: 1, // Peso base para estimación
+                length: 20, width: 20, height: 20,
+                declared_value: 0
+            };
+
+            const result = await calculateShippingCost(origin, destination, packageDetails, serviceType);
+            
+            if (result.success) {
+                const serviceNames = {
+                    standard: 'Envío Estándar',
+                    express: 'Envío Express',
+                    overnight: 'Envío Nocturno'
+                };
+
+                const serviceDescriptions = {
+                    standard: 'Entrega en horario laboral estándar',
+                    express: 'Entrega prioritaria en 1-2 días',
+                    overnight: 'Entrega garantizada en 24 horas'
+                };
+
+                opciones.push({
+                    id: serviceType,
+                    nombre: serviceNames[serviceType],
+                    descripcion: serviceDescriptions[serviceType],
+                    precio_base: result.pricing.breakdown.basePrice,
+                    tiempo_entrega: result.pricing.estimatedDelivery,
+                    precio_por_kg: FORZA_PRICING.weightRates[serviceType]
+                });
+            }
+        } catch (error) {
+            console.error(`⚠️ Error generando opción de servicio ${serviceType}:`, error.message);
+        }
+    }
+
+    return opciones;
+}
 
 // ============================================
 // ENDPOINTS DE GESTIÓN
@@ -1126,6 +2212,420 @@ app.post('/api/shipments/create', async (req, res) => {
     }
 });
 
+// ============================================
+// ENDPOINTS DE AUTENTICACIÓN
+// ============================================
+
+// Endpoint de prueba
+app.get('/api/auth/test', (req, res) => {
+    console.log('🧪 Test endpoint alcanzado');
+    res.json({
+        success: true,
+        message: 'Endpoint de autenticación funcionando',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Login de usuario
+console.log('🔧 Registrando endpoint: POST /api/auth/login');
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        console.log('🔐 Intento de login - Endpoint alcanzado...');
+        console.log('📝 Body recibido:', JSON.stringify(req.body, null, 2));
+        
+        const { username, password } = req.body;
+        console.log('👤 Usuario:', username);
+        console.log('🔑 Password recibido:', password ? '***' : 'undefined');
+
+        if (!username || !password) {
+            console.log('❌ Faltan credenciales');
+            return res.status(400).json({
+                success: false,
+                message: 'Usuario y contraseña son requeridos'
+            });
+        }
+
+        // Usuarios de demostración
+        const demoUsers = [
+            {
+                id: 'admin001',
+                username: 'admin',
+                password: 'admin123',
+                role: 'admin',
+                name: 'Administrador',
+                email: 'admin@dsenvios.com'
+            },
+            {
+                id: 'op001',
+                username: 'operador',
+                password: 'op123',
+                role: 'operator',
+                name: 'Operador',
+                email: 'operador@dsenvios.com'
+            },
+            {
+                id: 'user001',
+                username: 'usuario',
+                password: 'user123',
+                role: 'user',
+                name: 'Usuario',
+                email: 'usuario@ejemplo.com'
+            }
+        ];
+
+        // Buscar usuario
+        const user = demoUsers.find(u => u.username === username && u.password === password);
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Credenciales inválidas'
+            });
+        }
+
+        // Crear token JWT
+        const token = jwt.sign(
+            {
+                id: user.id,
+                username: user.username,
+                role: user.role,
+                name: user.name,
+                email: user.email
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        console.log('✅ Login exitoso para:', username);
+
+        res.json({
+            success: true,
+            message: 'Login exitoso',
+            data: {
+                token,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    role: user.role,
+                    name: user.name,
+                    email: user.email
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Error en login:', error.message);
+        console.error('❌ Stack trace:', error.stack);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Verificar token
+app.get('/api/auth/verify', authenticateToken, (req, res) => {
+    res.json({
+        success: true,
+        user: req.user
+    });
+});
+
+// ============================================
+// ENDPOINTS DE ENVÍOS MEJORADOS
+// ============================================
+
+// Crear nuevo envío con validación completa
+app.post('/api/shipments/enhanced', authenticateToken, async (req, res) => {
+    try {
+        console.log('📦 Creando nuevo envío mejorado...');
+        console.log('Usuario autenticado:', req.user);
+        console.log('Datos del envío:', JSON.stringify(req.body, null, 2));
+
+        const {
+            senderName,
+            senderPhone,
+            senderEmail,
+            receiverName,
+            receiverPhone,
+            receiverEmail,
+            packageWeight,
+            packageDimensions,
+            packageDescription,
+            packageValue,
+            fragile,
+            senderAddress,
+            receiverAddress,
+            serviceType,
+            paymentMethod,
+            additionalServices,
+            notes
+        } = req.body;
+
+        // Validaciones requeridas
+        if (!senderName || !senderPhone || !receiverName || !receiverPhone) {
+            return res.status(400).json({
+                success: false,
+                message: 'Datos de remitente y destinatario son requeridos'
+            });
+        }
+
+        if (!packageWeight || !packageDescription) {
+            return res.status(400).json({
+                success: false,
+                message: 'Peso y descripción del paquete son requeridos'
+            });
+        }
+
+        if (!senderAddress || !receiverAddress) {
+            return res.status(400).json({
+                success: false,
+                message: 'Direcciones de origen y destino son requeridas'
+            });
+        }
+
+        if (!serviceType || !paymentMethod) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tipo de servicio y método de pago son requeridos'
+            });
+        }
+
+        // Generar número de tracking único
+        const trackingNumber = `DS${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+
+        // Calcular precio base del envío
+        let basePrice = 0;
+        if (packageWeight <= 1) {
+            basePrice = 25;
+        } else if (packageWeight <= 5) {
+            basePrice = 35;
+        } else if (packageWeight <= 10) {
+            basePrice = 50;
+        } else {
+            basePrice = 50 + ((packageWeight - 10) * 5);
+        }
+
+        // Ajustar precio según tipo de servicio
+        let finalPrice = basePrice;
+        switch (serviceType) {
+            case 'express':
+                finalPrice = basePrice * 1.5;
+                break;
+            case 'overnight':
+                finalPrice = basePrice * 2.0;
+                break;
+            case 'same-day':
+                finalPrice = basePrice * 2.5;
+                break;
+        }
+
+        // Agregar servicios adicionales
+        if (additionalServices) {
+            if (additionalServices.includes('insurance') && packageValue) {
+                finalPrice += packageValue * 0.02; // 2% del valor del paquete
+            }
+            if (additionalServices.includes('signature')) {
+                finalPrice += 10;
+            }
+            if (additionalServices.includes('packaging')) {
+                finalPrice += 15;
+            }
+        }
+
+        // Crear objeto de envío mejorado
+        const newShipment = {
+            trackingNumber,
+            status: 'pending',
+            createdBy: req.user.id,
+            createdByRole: req.user.role,
+            createdByName: req.user.name,
+            sender: {
+                name: senderName,
+                phone: senderPhone,
+                email: senderEmail || null,
+                address: senderAddress
+            },
+            receiver: {
+                name: receiverName,
+                phone: receiverPhone,
+                email: receiverEmail || null,
+                address: receiverAddress
+            },
+            package: {
+                weight: parseFloat(packageWeight),
+                dimensions: packageDimensions || null,
+                description: packageDescription,
+                value: packageValue ? parseFloat(packageValue) : null,
+                fragile: fragile || false
+            },
+            service: {
+                type: serviceType,
+                additionalServices: additionalServices || []
+            },
+            payment: {
+                method: paymentMethod,
+                amount: Math.round(finalPrice * 100) / 100, // Redondear a 2 decimales
+                status: 'pending'
+            },
+            notes: notes || null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            timeline: [{
+                status: 'pending',
+                timestamp: new Date(),
+                description: 'Envío creado exitosamente',
+                location: senderAddress.department || 'Guatemala',
+                updatedBy: req.user.name
+            }]
+        };
+
+        // Insertar en base de datos
+        const result = await db.collection('shipments').insertOne(newShipment);
+
+        console.log('✅ Envío mejorado creado exitosamente:', trackingNumber);
+
+        res.status(201).json({
+            success: true,
+            message: 'Envío creado exitosamente',
+            data: {
+                trackingNumber,
+                shipmentId: result.insertedId,
+                estimatedPrice: newShipment.payment.amount,
+                status: 'pending',
+                createdBy: req.user.name
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Error al crear envío mejorado:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor al crear el envío'
+        });
+    }
+});
+
+// Obtener envíos del usuario (con filtros por rol)
+app.get('/api/shipments/user', authenticateToken, async (req, res) => {
+    try {
+        console.log('📋 Obteniendo envíos para usuario:', req.user);
+
+        let query = {};
+        
+        // Filtrar según el rol del usuario
+        if (req.user.role === 'user') {
+            // Los usuarios solo ven sus propios envíos
+            query.createdBy = req.user.id;
+        } else if (req.user.role === 'operator') {
+            // Los operadores ven envíos que pueden gestionar
+            query.$or = [
+                { createdBy: req.user.id },
+                { status: { $in: ['pending', 'confirmed', 'picked-up', 'in-transit'] } }
+            ];
+        }
+        // Los administradores ven todos los envíos (sin filtro)
+
+        const shipments = await db.collection('shipments')
+            .find(query)
+            .sort({ createdAt: -1 })
+            .toArray();
+
+        console.log(`✅ Se encontraron ${shipments.length} envíos para ${req.user.role}`);
+
+        res.json({
+            success: true,
+            data: shipments,
+            userRole: req.user.role,
+            totalShipments: shipments.length
+        });
+
+    } catch (error) {
+        console.error('❌ Error al obtener envíos:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Actualizar estado de envío (solo admin y operadores)
+app.put('/api/shipments/:id/status', authenticateToken, async (req, res) => {
+    try {
+        // Verificar permisos
+        if (req.user.role === 'user') {
+            return res.status(403).json({
+                success: false,
+                message: 'No tienes permisos para actualizar envíos'
+            });
+        }
+
+        const { id } = req.params;
+        const { status, location, description } = req.body;
+
+        if (!status) {
+            return res.status(400).json({
+                success: false,
+                message: 'Estado es requerido'
+            });
+        }
+
+        const validStatuses = ['pending', 'confirmed', 'picked-up', 'in-transit', 'delivered', 'cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Estado no válido'
+            });
+        }
+
+        // Actualizar envío
+        const updateData = {
+            status,
+            updatedAt: new Date(),
+            $push: {
+                timeline: {
+                    status,
+                    timestamp: new Date(),
+                    description: description || `Estado actualizado a ${status}`,
+                    location: location || 'Guatemala',
+                    updatedBy: req.user.name
+                }
+            }
+        };
+
+        const result = await db.collection('shipments').updateOne(
+            { _id: new ObjectId(id) },
+            updateData
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Envío no encontrado'
+            });
+        }
+
+        console.log('✅ Estado de envío actualizado:', id, 'por', req.user.name);
+
+        res.json({
+            success: true,
+            message: 'Estado actualizado exitosamente',
+            updatedBy: req.user.name
+        });
+
+    } catch (error) {
+        console.error('❌ Error al actualizar estado:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// ============================================
+// ENDPOINTS EXISTENTES (mantener compatibilidad)
+// ============================================
+
 // Descargar guía de envío
 app.get('/api/shipments/download-guide/:id', async (req, res) => {
     try {
@@ -1297,6 +2797,629 @@ app.get('/api/guatemala/villages', async (req, res) => {
 });
 
 // ============================================
+// ENDPOINTS PARA EL NUEVO FORMULARIO DE ENVÍOS
+// ============================================
+
+// ====== DIRECCIONES FRECUENTES ======
+
+// Obtener direcciones frecuentes del usuario
+app.get('/api/frequent-addresses', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { category, search } = req.query;
+
+        let query = { userId, isActive: true };
+        
+        if (category && category !== 'all') {
+            query.category = category;
+        }
+
+        const addresses = await db.collection('frequent_addresses')
+            .find(query)
+            .sort({ isPrimary: -1, lastUsed: -1 })
+            .toArray();
+
+        // Filtrar por búsqueda si se proporciona
+        let filteredAddresses = addresses;
+        if (search) {
+            const searchLower = search.toLowerCase();
+            filteredAddresses = addresses.filter(addr => 
+                addr.nickname.toLowerCase().includes(searchLower) ||
+                addr.contactName.toLowerCase().includes(searchLower) ||
+                addr.phone.includes(search)
+            );
+        }
+
+        res.json({
+            success: true,
+            addresses: filteredAddresses,
+            count: filteredAddresses.length
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo direcciones frecuentes:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Crear nueva dirección frecuente
+app.post('/api/frequent-addresses', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const {
+            nickname,
+            category,
+            contactName,
+            phone,
+            alternatePhone,
+            email,
+            address,
+            deliveryInstructions,
+            isPrimary
+        } = req.body;
+
+        // Validar campos obligatorios
+        if (!nickname || !category || !contactName || !phone || !address) {
+            return res.status(400).json({
+                success: false,
+                message: 'Campos obligatorios: nickname, category, contactName, phone, address'
+            });
+        }
+
+        // Validar estructura de dirección
+        if (!address.department || !address.municipality) {
+            return res.status(400).json({
+                success: false,
+                message: 'La dirección debe incluir departamento y municipio'
+            });
+        }
+
+        // Si es dirección primaria, desactivar otras primarias del usuario
+        if (isPrimary) {
+            await db.collection('frequent_addresses').updateMany(
+                { userId, isPrimary: true },
+                { $set: { isPrimary: false, updatedAt: new Date() } }
+            );
+        }
+
+        const newAddress = {
+            userId,
+            nickname,
+            category,
+            contactName,
+            phone,
+            alternatePhone: alternatePhone || null,
+            email: email || null,
+            address,
+            deliveryInstructions: deliveryInstructions || {},
+            usageCount: 0,
+            lastUsed: null,
+            isActive: true,
+            isPrimary: isPrimary || false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            createdBy: userId
+        };
+
+        const result = await db.collection('frequent_addresses').insertOne(newAddress);
+
+        res.json({
+            success: true,
+            message: 'Dirección frecuente creada exitosamente',
+            addressId: result.insertedId,
+            address: newAddress
+        });
+
+    } catch (error) {
+        console.error('Error creando dirección frecuente:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Actualizar dirección frecuente
+app.put('/api/frequent-addresses/:id', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const addressId = req.params.id;
+        const updateData = { ...req.body };
+
+        // Agregar metadatos de actualización
+        updateData.updatedAt = new Date();
+
+        // Si es dirección primaria, desactivar otras primarias del usuario
+        if (updateData.isPrimary) {
+            await db.collection('frequent_addresses').updateMany(
+                { userId, isPrimary: true, _id: { $ne: new ObjectId(addressId) } },
+                { $set: { isPrimary: false, updatedAt: new Date() } }
+            );
+        }
+
+        const result = await db.collection('frequent_addresses').updateOne(
+            { _id: new ObjectId(addressId), userId },
+            { $set: updateData }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Dirección no encontrada'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Dirección actualizada exitosamente'
+        });
+
+    } catch (error) {
+        console.error('Error actualizando dirección frecuente:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Usar dirección frecuente (incrementar contador de uso)
+app.post('/api/frequent-addresses/:id/use', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const addressId = req.params.id;
+
+        const result = await db.collection('frequent_addresses').updateOne(
+            { _id: new ObjectId(addressId), userId },
+            { 
+                $inc: { usageCount: 1 },
+                $set: { lastUsed: new Date() }
+            }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Dirección no encontrada'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Uso de dirección registrado'
+        });
+
+    } catch (error) {
+        console.error('Error registrando uso de dirección:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// ====== MÉTODOS DE PAGO ======
+
+// Obtener métodos de pago disponibles
+app.get('/api/payment-methods', async (req, res) => {
+    try {
+        const methods = await db.collection('payment_methods')
+            .find({ isActive: true })
+            .sort({ displayOrder: 1 })
+            .toArray();
+
+        res.json({
+            success: true,
+            methods: methods
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo métodos de pago:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Calcular cargos por método de pago
+app.post('/api/payment-methods/calculate-fee', async (req, res) => {
+    try {
+        const { methodId, orderValue } = req.body;
+
+        if (!methodId || !orderValue) {
+            return res.status(400).json({
+                success: false,
+                message: 'methodId y orderValue son requeridos'
+            });
+        }
+
+        const method = await db.collection('payment_methods').findOne({ 
+            methodId, 
+            isActive: true 
+        });
+
+        if (!method) {
+            return res.status(404).json({
+                success: false,
+                message: 'Método de pago no encontrado'
+            });
+        }
+
+        // Validar restricciones
+        if (orderValue < method.restrictions.minOrderValue || 
+            orderValue > method.restrictions.maxOrderValue) {
+            return res.status(400).json({
+                success: false,
+                message: `Valor del pedido debe estar entre Q${method.restrictions.minOrderValue} y Q${method.restrictions.maxOrderValue}`
+            });
+        }
+
+        // Calcular cargo
+        let fee = method.fees.fixedAmount || 0;
+        if (method.fees.percentageRate > 0) {
+            fee += orderValue * (method.fees.percentageRate / 100);
+        }
+
+        // Aplicar límites de cargo
+        if (method.fees.minimumCharge && fee < method.fees.minimumCharge) {
+            fee = method.fees.minimumCharge;
+        }
+        if (method.fees.maximumCharge && fee > method.fees.maximumCharge) {
+            fee = method.fees.maximumCharge;
+        }
+
+        res.json({
+            success: true,
+            methodId,
+            methodName: method.displayName,
+            orderValue,
+            fee: parseFloat(fee.toFixed(2)),
+            totalAmount: parseFloat((orderValue + fee).toFixed(2)),
+            currency: method.fees.currency
+        });
+
+    } catch (error) {
+        console.error('Error calculando cargo de método de pago:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// ====== TIPOS DE PAQUETES ======
+
+// Obtener tipos de paquetes disponibles
+app.get('/api/package-types', async (req, res) => {
+    try {
+        const { category } = req.query;
+
+        let query = { isActive: true };
+        if (category) {
+            query.category = category;
+        }
+
+        const packageTypes = await db.collection('package_types')
+            .find(query)
+            .sort({ displayOrder: 1, displayName: 1 })
+            .toArray();
+
+        res.json({
+            success: true,
+            packageTypes: packageTypes
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo tipos de paquetes:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Validar paquete según tipo
+app.post('/api/package-types/validate', async (req, res) => {
+    try {
+        const { typeId, weight, dimensions, value } = req.body;
+
+        if (!typeId) {
+            return res.status(400).json({
+                success: false,
+                message: 'typeId es requerido'
+            });
+        }
+
+        const packageType = await db.collection('package_types').findOne({ 
+            typeId, 
+            isActive: true 
+        });
+
+        if (!packageType) {
+            return res.status(404).json({
+                success: false,
+                message: 'Tipo de paquete no encontrado'
+            });
+        }
+
+        const validationErrors = [];
+
+        // Validar peso
+        if (weight && weight > packageType.specifications.maxWeight) {
+            validationErrors.push(`Peso máximo permitido: ${packageType.specifications.maxWeight}kg`);
+        }
+
+        // Validar dimensiones
+        if (dimensions) {
+            const { length, width, height } = dimensions;
+            const maxDim = packageType.specifications.maxDimensions;
+            
+            if (length > maxDim.length) {
+                validationErrors.push(`Largo máximo permitido: ${maxDim.length}cm`);
+            }
+            if (width > maxDim.width) {
+                validationErrors.push(`Ancho máximo permitido: ${maxDim.width}cm`);
+            }
+            if (height > maxDim.height) {
+                validationErrors.push(`Alto máximo permitido: ${maxDim.height}cm`);
+            }
+        }
+
+        const isValid = validationErrors.length === 0;
+
+        res.json({
+            success: true,
+            valid: isValid,
+            errors: validationErrors,
+            packageType: {
+                typeId: packageType.typeId,
+                displayName: packageType.displayName,
+                specifications: packageType.specifications,
+                pricing: packageType.pricing
+            }
+        });
+
+    } catch (error) {
+        console.error('Error validando paquete:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// ====== NUEVO ENDPOINT PARA CREAR ENVÍO CON VALIDACIONES ======
+
+// Crear envío con validaciones completas del nuevo formulario
+app.post('/api/shipments/create-with-validation', authenticateToken, async (req, res) => {
+    try {
+        console.log('📦 Creando envío con validaciones completas...');
+        
+        const {
+            // Paso 1: Información del destinatario (campos obligatorios con *)
+            receiverName,           // *
+            receiverEmail,          // *
+            receiverReference,      // * (casa, trabajo, gimnasio, escuela)
+            receiverPoblado,        // *
+            receiverMunicipio,      // *
+            receiverDepartamento,   // *
+            receiverPhone,
+            receiverAddress,
+            frequentAddressId,
+            
+            // Paso 2: Método de pago
+            paymentMethodId,        // * (contra_entrega, cobro_cuenta, tarjeta_credito)
+            
+            // Paso 3: Tipo de paquete
+            packageTypeId,          // *
+            packageWeight,
+            packageDimensions,
+            packageValue,
+            packageDescription,
+            
+            // Información del remitente (opcional o de sesión)
+            senderName,
+            senderPhone,
+            senderEmail,
+            senderAddress
+        } = req.body;
+
+        // ====== VALIDACIONES OBLIGATORIAS ======
+        const requiredFields = {
+            receiverName: 'Nombre del destinatario',
+            receiverEmail: 'Correo electrónico del destinatario',
+            receiverReference: 'Referencia (casa, trabajo, gimnasio, escuela)',
+            receiverPoblado: 'Poblado',
+            receiverMunicipio: 'Municipio',
+            receiverDepartamento: 'Departamento',
+            paymentMethodId: 'Método de pago',
+            packageTypeId: 'Tipo de paquete'
+        };
+
+        const missingFields = [];
+        for (const [field, label] of Object.entries(requiredFields)) {
+            if (!req.body[field]) {
+                missingFields.push(label);
+            }
+        }
+
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Campos obligatorios faltantes',
+                missingFields
+            });
+        }
+
+        // Validar referencia
+        const validReferences = ['casa', 'trabajo', 'gimnasio', 'escuela'];
+        if (!validReferences.includes(receiverReference)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Referencia debe ser: casa, trabajo, gimnasio o escuela'
+            });
+        }
+
+        // ====== VALIDAR MÉTODO DE PAGO ======
+        const paymentMethod = await db.collection('payment_methods').findOne({
+            methodId: paymentMethodId,
+            isActive: true
+        });
+
+        if (!paymentMethod) {
+            return res.status(400).json({
+                success: false,
+                message: 'Método de pago no válido'
+            });
+        }
+
+        // ====== VALIDAR TIPO DE PAQUETE ======
+        const packageType = await db.collection('package_types').findOne({
+            typeId: packageTypeId,
+            isActive: true
+        });
+
+        if (!packageType) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tipo de paquete no válido'
+            });
+        }
+
+        // ====== CALCULAR PRECIOS ======
+        let basePrice = packageType.pricing.basePrice;
+        let finalPrice = basePrice * packageType.pricing.priceModifier;
+
+        // Calcular cargo del método de pago
+        let paymentFee = paymentMethod.fees.fixedAmount || 0;
+        if (paymentMethod.fees.percentageRate > 0) {
+            paymentFee += finalPrice * (paymentMethod.fees.percentageRate / 100);
+        }
+
+        const totalAmount = finalPrice + paymentFee;
+
+        // ====== GENERAR TRACKING NUMBER ======
+        const trackingNumber = `DS${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+
+        // ====== CREAR ENVÍO ======
+        const newShipment = {
+            trackingNumber,
+            status: 'pending',
+            createdBy: req.user.id,
+            createdByRole: req.user.role,
+            createdByName: req.user.name,
+            
+            // Remitente
+            sender: {
+                name: senderName || req.user.name,
+                phone: senderPhone || '',
+                email: senderEmail || req.user.email,
+                address: senderAddress || {}
+            },
+            
+            // Destinatario con campos obligatorios
+            receiver: {
+                name: receiverName,
+                phone: receiverPhone || '',
+                email: receiverEmail,
+                reference: receiverReference,
+                poblado: receiverPoblado,
+                municipio: receiverMunicipio,
+                departamento: receiverDepartamento,
+                address: receiverAddress || {},
+                frequentAddressId: frequentAddressId ? new ObjectId(frequentAddressId) : null,
+                isFrequentAddress: !!frequentAddressId
+            },
+            
+            // Información del paquete
+            package: {
+                typeId: packageTypeId,
+                typeName: packageType.displayName,
+                description: packageDescription || '',
+                weight: packageWeight || 0,
+                dimensions: packageDimensions || {},
+                value: packageValue || 0,
+                fragile: packageType.specifications.fragile,
+                category: packageType.category
+            },
+            
+            // Información de pago
+            payment: {
+                method: paymentMethodId,
+                methodDisplayName: paymentMethod.displayName,
+                amount: parseFloat(totalAmount.toFixed(2)),
+                breakdown: {
+                    basePrice: parseFloat(basePrice.toFixed(2)),
+                    packageTypeModifier: packageType.pricing.priceModifier,
+                    finalPrice: parseFloat(finalPrice.toFixed(2)),
+                    paymentMethodFee: parseFloat(paymentFee.toFixed(2))
+                },
+                status: 'pending',
+                paidAt: null,
+                receiptNumber: null,
+                paymentMethodId: paymentMethodId
+            },
+            
+            // Metadatos
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            
+            // Timeline inicial
+            timeline: [{
+                status: 'pending',
+                timestamp: new Date(),
+                description: 'Envío creado exitosamente',
+                location: 'Sistema',
+                updatedBy: req.user.name,
+                automatic: false
+            }]
+        };
+
+        // Insertar en base de datos
+        const result = await db.collection('shipments').insertOne(newShipment);
+
+        // Actualizar uso de dirección frecuente si aplica
+        if (frequentAddressId) {
+            await db.collection('frequent_addresses').updateOne(
+                { _id: new ObjectId(frequentAddressId) },
+                { 
+                    $inc: { usageCount: 1 },
+                    $set: { lastUsed: new Date() }
+                }
+            );
+        }
+
+        console.log('✅ Envío creado exitosamente:', trackingNumber);
+
+        res.json({
+            success: true,
+            message: 'Envío creado exitosamente',
+            shipment: {
+                id: result.insertedId,
+                trackingNumber,
+                status: 'pending',
+                totalAmount: parseFloat(totalAmount.toFixed(2)),
+                paymentMethod: paymentMethod.displayName,
+                packageType: packageType.displayName,
+                estimatedDelivery: packageType.deliveryOptions.maxDeliveryDays
+            }
+        });
+
+    } catch (error) {
+        console.error('Error creando envío con validaciones:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor',
+            error: error.message
+        });
+    }
+});
+
+// ============================================
 // INICIALIZACIÓN DEL SERVIDOR
 // ============================================
 
@@ -1310,11 +3433,28 @@ async function startServer() {
             console.log(`📡 Servidor ejecutándose en http://localhost:${PORT}`);
             console.log('🎯 Endpoints disponibles:');
             console.log('   📊 GET  /api/health');
-            console.log('   � GET  /api/db-status');
-            console.log('   �🔐 POST /api/login');
+            console.log('   💾 GET  /api/db-status');
+            console.log('   🔐 POST /api/auth/login');
             console.log('   🌐 GET  /api/forza/status');
             console.log('   📦 POST /api/forza/quote');
             console.log('   🚚 POST /api/forza/shipment');
+            console.log('   📍 POST /api/forza/tracking');
+            console.log('   📋 POST /api/shipments');
+            console.log('   💰 POST /api/quotes');
+            console.log('   🏛️  GET  /api/guatemala/departments');
+            console.log('   🏘️  GET  /api/guatemala/municipalities');
+            console.log('   🏡 GET  /api/guatemala/villages');
+            console.log('');
+            console.log('🆕 Nuevos endpoints para formulario de envíos:');
+            console.log('   📍 GET  /api/frequent-addresses');
+            console.log('   📍 POST /api/frequent-addresses');
+            console.log('   📍 PUT  /api/frequent-addresses/:id');
+            console.log('   📍 POST /api/frequent-addresses/:id/use');
+            console.log('   💳 GET  /api/payment-methods');
+            console.log('   💳 POST /api/payment-methods/calculate-fee');
+            console.log('   📦 GET  /api/package-types');
+            console.log('   📦 POST /api/package-types/validate');
+            console.log('   🚚 POST /api/shipments/create-with-validation');
             console.log('   📍 POST /api/forza/tracking');
             console.log('   📋 POST /api/shipments');
             console.log('   💰 POST /api/quotes');
@@ -1330,6 +3470,7 @@ async function startServer() {
 }
 
 // Manejar cierre graceful
+/*
 process.on('SIGINT', async () => {
     console.log('\n🔄 Cerrando servidor...');
     if (mongoClient) {
@@ -1337,6 +3478,18 @@ process.on('SIGINT', async () => {
         console.log('📁 MongoDB desconectado');
     }
     process.exit(0);
+});
+*/
+
+// Manejadores de errores no capturados
+process.on('uncaughtException', (error) => {
+    console.error('❌ Error no capturado:', error);
+    console.error('❌ Stack:', error.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Promesa rechazada sin manejar:', reason);
+    console.error('❌ En promesa:', promise);
 });
 
 // Iniciar servidor

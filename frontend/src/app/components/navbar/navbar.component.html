@@ -2,9 +2,9 @@
   <div class="navbar-container">
     <!-- Logo -->
     <div class="navbar-logo">
-      <a routerLink="/">
-        <img src="assets/images/logo.svg" alt="Logo Envíos" class="logo-image">
-        <span class="logo-text">EnvíosRápidos</span>
+      <a routerLink="/" (click)="closeMenus()">
+        <span class="logo-icon">📦</span>
+        <span class="logo-text">EnviosDS</span>
       </a>
     </div>
 
@@ -18,35 +18,102 @@
     <!-- Navigation Menu -->
     <ul class="navbar-menu" [class.active]="isMenuOpen">
       <li class="navbar-item">
-        <a routerLink="/" class="navbar-link" (click)="closeMenu()" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-          <span class="nav-icon">🏠</span>
+        <a routerLink="/" class="navbar-link" (click)="closeMenus()" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <span class="nav-icon"></span>
           Inicio
         </a>
       </li>
       <li class="navbar-item">
-        <a routerLink="/cotizar" class="navbar-link" (click)="closeMenu()" routerLinkActive="active">
-          <span class="nav-icon">💰</span>
+        <a routerLink="/cotizar" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
+          <span class="nav-icon"></span>
           Cotizar
         </a>
       </li>
+      
       <li class="navbar-item">
-        <a routerLink="/realizar-envio" class="navbar-link" (click)="closeMenu()" routerLinkActive="active">
-          <span class="nav-icon">📦</span>
-          Realizar Envío
-        </a>
-      </li>
-      <li class="navbar-item">
-        <a routerLink="/rastreo" class="navbar-link" (click)="closeMenu()" routerLinkActive="active">
-          <span class="nav-icon">📍</span>
+        <a routerLink="/rastreo" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
+          <span class="nav-icon"></span>
           Rastreo
         </a>
       </li>
       <li class="navbar-item">
-        <a routerLink="/contacto" class="navbar-link" (click)="closeMenu()" routerLinkActive="active">
-          <span class="nav-icon">📞</span>
+        <a routerLink="/contacto" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
+          <span class="nav-icon"></span>
           Contacto
         </a>
       </li>
     </ul>
+
+    <!-- User Section -->
+    <div class="user-section">
+      
+      <!-- Usuario no autenticado -->
+      <div class="auth-buttons" *ngIf="!isAuthenticated">
+        <button class="login-btn" (click)="goToLogin()">
+          <span class="btn-icon"></span>
+          Iniciar Sesión
+        </button>
+      </div>
+
+      <!-- Usuario autenticado -->
+      <div class="user-menu-container" *ngIf="isAuthenticated && currentUser">
+        
+        <!-- Avatar y nombre -->
+        <button class="user-button" (click)="toggleUserMenu()">
+          <div class="user-avatar">
+            {{ getUserInitials(currentUser.name) }}
+          </div>
+          <div class="user-info">
+            <div class="user-name">{{ currentUser.name }}</div>
+            <div class="user-role">{{ getRoleName(currentUser.role) }}</div>
+          </div>
+          <span class="dropdown-arrow" [class.open]="isUserMenuOpen">▼</span>
+        </button>
+
+        <!-- Menú desplegable del usuario -->
+        <div class="user-dropdown" [class.active]="isUserMenuOpen">
+          
+          <div class="dropdown-header">
+            <div class="dropdown-avatar">
+              {{ getUserInitials(currentUser.name) }}
+            </div>
+            <div class="dropdown-info">
+              <div class="dropdown-name">{{ currentUser.name }}</div>
+              <div class="dropdown-email">{{ currentUser.email }}</div>
+              <div class="dropdown-role">{{ getRoleName(currentUser.role) }}</div>
+            </div>
+          </div>
+
+          <div class="dropdown-divider"></div>
+
+          <div class="dropdown-menu">
+            <button class="dropdown-item" (click)="goToAdmin()">
+              <span class="item-icon"></span>
+              <div class="item-content">
+                <div class="item-title">Panel de Admin</div>
+                <div class="item-description">Administrar sistema</div>
+              </div>
+            </button>
+
+            <button class="dropdown-item" (click)="logout()">
+              <span class="item-icon"></span>
+              <div class="item-content">
+                <div class="item-title">Cerrar Sesión</div>
+                <div class="item-description">Salir del sistema</div>
+              </div>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Overlay para cerrar menús -->
+  <div class="menu-overlay" 
+       *ngIf="isMenuOpen || isUserMenuOpen" 
+       (click)="closeMenus()">
   </div>
 </nav>
