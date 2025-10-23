@@ -7,6 +7,8 @@ import { RastreoComponent } from './components/rastreo/rastreo.component';
 import { ContactoComponent } from './components/contacto/contacto.component';
 import { LoginComponent } from './components/login/login.component';
 import { AdminComponent } from './components/admin/admin.component';
+import { CrearGuiaComponent } from './components/crear-guia/crear-guia.component';
+import { ListaGuiasComponent } from './components/lista-guias/lista-guias.component';
 import { AuthGuard } from './guards/auth.guard';
 import { RoleGuard } from './guards/role.guard';
 
@@ -28,19 +30,53 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   
-  // Rutas adicionales protegidas por rol (para futuro)
+  // Rutas específicas del sistema
   { 
-    path: 'admin/users', 
-    component: AdminComponent,  // Placeholder, se puede crear componente específico
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['admin'] }
+    path: 'crear-guia', 
+    component: CrearGuiaComponent,
+    canActivate: [AuthGuard]
   },
   
   { 
-    path: 'admin/operations', 
-    component: AdminComponent,  // Placeholder, se puede crear componente específico
+    path: 'lista-guias', 
+    component: ListaGuiasComponent,
+    canActivate: [AuthGuard]
+  },
+  
+  // Rutas adicionales protegidas por rol
+  { 
+    path: 'admin/usuarios', 
+    component: AdminComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['admin', 'operator'] }
+    data: { roles: ['ADMIN'] }
+  },
+  
+  { 
+    path: 'admin/guias', 
+    component: AdminComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'EMPLEADO'] }
+  },
+
+  { 
+    path: 'empleado', 
+    component: AdminComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['EMPLEADO'] }
+  },
+
+  { 
+    path: 'cliente', 
+    component: AdminComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CLIENTE'] }
+  },
+  
+  // Dashboard general
+  { 
+    path: 'dashboard', 
+    component: AdminComponent,
+    canActivate: [AuthGuard]
   },
   
   // Wildcard route para páginas no encontradas

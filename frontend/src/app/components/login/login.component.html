@@ -11,44 +11,44 @@
     <!-- Formulario de Login -->
     <form class="login-form" (ngSubmit)="onSubmit()" #loginFormRef="ngForm">
       
-      <!-- Campo Usuario -->
+      <!-- Campo Correo -->
       <div class="form-group">
-        <label for="username" class="form-label">
-          <span class="label-icon"></span>
-          Usuario
+        <label for="correo" class="form-label">
+          <span class="label-icon">📧</span>
+          Correo Electrónico
         </label>
         <div class="input-wrapper">
           <input
-            type="text"
-            id="username"
-            name="username"
+            type="email"
+            id="correo"
+            name="correo"
             class="form-input"
-            placeholder="Ingresa tu usuario"
-            [value]="loginForm.username"
-            (input)="onUsernameChange($event)"
+            placeholder="Ingresa tu correo"
+            [value]="loginForm.correo"
+            (input)="onCorreoChange($event)"
             [disabled]="isLoading"
-            autocomplete="username"
+            autocomplete="email"
             required
           >
-          <span class="input-icon"></span>
+          <span class="input-icon">📧</span>
         </div>
       </div>
 
       <!-- Campo Contraseña -->
       <div class="form-group">
-        <label for="password" class="form-label">
-          <span class="label-icon"></span>
+        <label for="contrasena" class="form-label">
+          <span class="label-icon">🔒</span>
           Contraseña
         </label>
         <div class="input-wrapper">
           <input
             [type]="showPassword ? 'text' : 'password'"
-            id="password"
-            name="password"
+            id="contrasena"
+            name="contrasena"
             class="form-input"
             placeholder="Ingresa tu contraseña"
-            [value]="loginForm.password"
-            (input)="onPasswordChange($event)"
+            [value]="loginForm.contrasena"
+            (input)="onContrasenaChange($event)"
             [disabled]="isLoading"
             autocomplete="current-password"
             required
@@ -75,7 +75,7 @@
         type="submit"
         class="login-btn"
         [class.loading]="isLoading"
-        [disabled]="isLoading || !loginForm.username || !loginForm.password"
+        [disabled]="isLoading || !loginForm.correo || !loginForm.contrasena"
       >
         <span class="btn-content" *ngIf="!isLoading">
           <span class="btn-icon"></span>

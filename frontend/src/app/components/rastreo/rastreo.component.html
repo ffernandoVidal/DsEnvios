@@ -1,4 +1,249 @@
-<div class="page-container">
-  <h1>Rastreo de Envío</h1>
-  <p>Aquí podrás rastrear tu paquete...</p>
+<div class="rastreo-container">
+  <!-- Header -->
+  <div class="rastreo-header">
+    <h1 class="rastreo-title">
+      <span class="title-icon">📍</span>
+      Rastreo de Envío
+    </h1>
+    <p class="rastreo-subtitle">Ingresa tu número de guía para rastrear tu paquete en tiempo real</p>
+  </div>
+
+  <!-- Search Box -->
+  <div class="search-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        class="search-input"
+        [(ngModel)]="numeroGuia"
+        placeholder="Ejemplo: ENV-2025-001"
+        (keyup.enter)="buscarEnvio()"
+        [disabled]="buscando"
+      />
+      <button 
+        class="search-btn"
+        (click)="buscarEnvio()"
+        [disabled]="buscando || !numeroGuia.trim()"
+      >
+        <span *ngIf="!buscando">🔍 Rastrear</span>
+        <span *ngIf="buscando" class="spinner">⟳ Buscando...</span>
+      </button>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="error">
+      <span class="error-icon">⚠️</span>
+      {{ error }}
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div class="results-section" *ngIf="encontrado && guia && progreso">
+    
+    <!-- Clear Button -->
+    <button class="clear-btn" (click)="limpiarBusqueda()">
+      ✖ Nueva Búsqueda
+    </button>
+
+    <!-- Guia Info Card -->
+    <div class="guia-card">
+      <div class="guia-header">
+        <div class="guia-number">
+          <span class="label">Número de Guía:</span>
+          <span class="value">{{ guia.numero_guia }}</span>
+        </div>
+        <div class="guia-status" [style.background-color]="guia.estado_actual.color">
+          {{ guia.estado_actual.nombre }}
+        </div>
+      </div>
+
+      <div class="guia-details">
+        <div class="detail-item">
+          <span class="detail-icon">📦</span>
+          <div class="detail-content">
+            <span class="detail-label">Tipo de Envío</span>
+            <span class="detail-value">{{ guia.tipo_envio }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-icon">⚖️</span>
+          <div class="detail-content">
+            <span class="detail-label">Peso</span>
+            <span class="detail-value">{{ guia.peso }} kg</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-icon">📅</span>
+          <div class="detail-content">
+            <span class="detail-label">Fecha de Creación</span>
+            <span class="detail-value">{{ formatearFechaCorta(guia.fecha_creacion) }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-icon">🎯</span>
+          <div class="detail-content">
+            <span class="detail-label">Entrega Estimada</span>
+            <span class="detail-value">{{ formatearFechaCorta(guia.fecha_estimada_entrega) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Section -->
+    <div class="progress-section">
+      <h2 class="section-title">
+        <span class="title-icon">📊</span>
+        Estado del Envío
+      </h2>
+
+      <!-- Progress Bar -->
+      <div class="progress-bar-container">
+        <div class="progress-bar">
+          <div 
+            class="progress-fill" 
+            [style.width.%]="progreso.porcentaje"
+            [class.completed]="progreso.completado"
+          >
+            <span class="progress-text">{{ progreso.porcentaje }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline">
+        <div 
+          class="timeline-item"
+          *ngFor="let estado of progreso.timeline"
+          [class.completed]="estado.completado"
+          [class.active]="estado.activo"
+        >
+          <div class="timeline-icon">{{ estado.icono }}</div>
+          <div class="timeline-content">
+            <div class="timeline-title">{{ estado.nombre }}</div>
+            <div class="timeline-status">
+              <span *ngIf="estado.completado && !estado.activo" class="status-check">✓</span>
+              <span *ngIf="estado.activo" class="status-current">● Actual</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personas Info -->
+    <div class="personas-section">
+      <div class="persona-card remitente">
+        <h3 class="persona-title">
+          <span class="persona-icon">📤</span>
+          Remitente
+        </h3>
+        <div class="persona-info">
+          <div class="info-row">
+            <span class="info-label">Nombre:</span>
+            <span class="info-value">{{ guia.remitente.nombre || 'No especificado' }}</span>
+          </div>
+          <div class="info-row" *ngIf="guia.remitente.telefono">
+            <span class="info-label">Teléfono:</span>
+            <span class="info-value">{{ guia.remitente.telefono }}</span>
+          </div>
+          <div class="info-row" *ngIf="guia.remitente.direccion">
+            <span class="info-label">Dirección:</span>
+            <span class="info-value">{{ guia.remitente.direccion }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-separator">→</div>
+
+      <div class="persona-card destinatario">
+        <h3 class="persona-title">
+          <span class="persona-icon">📥</span>
+          Destinatario
+        </h3>
+        <div class="persona-info">
+          <div class="info-row">
+            <span class="info-label">Nombre:</span>
+            <span class="info-value">{{ guia.destinatario.nombre || 'No especificado' }}</span>
+          </div>
+          <div class="info-row" *ngIf="guia.destinatario.telefono">
+            <span class="info-label">Teléfono:</span>
+            <span class="info-value">{{ guia.destinatario.telefono }}</span>
+          </div>
+          <div class="info-row" *ngIf="guia.destinatario.direccion">
+            <span class="info-label">Dirección:</span>
+            <span class="info-value">{{ guia.destinatario.direccion }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial Section -->
+    <div class="historial-section" *ngIf="historial.length > 0">
+      <h2 class="section-title">
+        <span class="title-icon">📋</span>
+        Historial de Movimientos
+      </h2>
+
+      <div class="historial-timeline">
+        <div 
+          class="historial-item"
+          *ngFor="let item of historial; let i = index"
+        >
+          <div class="historial-date">
+            {{ formatearFecha(item.fecha) }}
+          </div>
+          <div class="historial-marker" [style.background-color]="item.color">
+            <span class="marker-dot"></span>
+          </div>
+          <div class="historial-content">
+            <div class="historial-estado" [style.color]="item.color">
+              {{ item.estado }}
+            </div>
+            <div class="historial-observaciones">
+              {{ item.observaciones || item.descripcion }}
+            </div>
+            <div class="historial-ubicacion" *ngIf="item.ubicacion">
+              📍 {{ item.ubicacion }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="additional-info" *ngIf="guia.descripcion || guia.notas">
+      <div class="info-card" *ngIf="guia.descripcion">
+        <h3>📦 Descripción del Contenido</h3>
+        <p>{{ guia.descripcion }}</p>
+      </div>
+
+      <div class="info-card" *ngIf="guia.notas">
+        <h3>📝 Notas Adicionales</h3>
+        <p>{{ guia.notas }}</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!encontrado && !error && !buscando">
+    <div class="empty-icon">📦</div>
+    <h3>Rastrea tu Envío</h3>
+    <p>Ingresa el número de guía para conocer el estado de tu paquete</p>
+    
+    <div class="example-guias">
+      <p class="example-title">Ejemplos de números de guía:</p>
+      <div class="example-item" (click)="numeroGuia = 'ENV-2025-001'; buscarEnvio()">
+        ENV-2025-001
+      </div>
+      <div class="example-item" (click)="numeroGuia = 'ENV-2025-002'; buscarEnvio()">
+        ENV-2025-002
+      </div>
+      <div class="example-item" (click)="numeroGuia = 'ENV-2025-003'; buscarEnvio()">
+        ENV-2025-003
+      </div>
+    </div>
+  </div>
+
 </div>

@@ -3,26 +3,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
-
-interface LoginForm {
-  username: string;
-  password: string;
-}
-
-interface LoginResponse {
-  success: boolean;
-  message: string;
-  data?: {
-    user: {
-      id: string;
-      username: string;
-      name: string;
-      role: string;
-      email: string;
-    };
-    token: string;
-  };
-}
+import { LoginRequest, LoginResponse } from '../../interfaces/interfaces';
 
 @Component({
   selector: 'app-login',
@@ -32,9 +13,9 @@ interface LoginResponse {
 export class LoginComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
   
-  loginForm: LoginForm = {
-    username: '',
-    password: ''
+  loginForm: LoginRequest = {
+    correo: '',
+    contrasena: ''
   };
 
   // Estados del formulario
@@ -63,17 +44,17 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
     
     // Validaciones básicas
-    if (!this.loginForm.username || !this.loginForm.password) {
+    if (!this.loginForm.correo || !this.loginForm.contrasena) {
       this.errorMessage = 'Por favor completa todos los campos';
       return;
     }
 
-    if (this.loginForm.username.length < 2) {
-      this.errorMessage = 'El usuario debe tener al menos 2 caracteres';
+    if (this.loginForm.correo.length < 5) {
+      this.errorMessage = 'El correo debe ser válido';
       return;
     }
 
-    if (this.loginForm.password.length < 3) {
+    if (this.loginForm.contrasena.length < 3) {
       this.errorMessage = 'La contraseña debe tener al menos 3 caracteres';
       return;
     }
@@ -82,7 +63,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.isLoading = true;
 
     this.subscription.add(
-      this.authService.login(this.loginForm.username, this.loginForm.password).subscribe({
+      this.authService.login(this.loginForm.correo, this.loginForm.contrasena).subscribe({
         next: (response: LoginResponse) => {
           console.log(' Login exitoso:', response);
           this.isLoading = false;
@@ -114,13 +95,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.showPassword = !this.showPassword;
   }
 
-  onUsernameChange(event: any): void {
-    this.loginForm.username = event.target.value.trim();
+  onCorreoChange(event: any): void {
+    this.loginForm.correo = event.target.value.trim();
     this.clearError();
   }
 
-  onPasswordChange(event: any): void {
-    this.loginForm.password = event.target.value;
+  onContrasenaChange(event: any): void {
+    this.loginForm.contrasena = event.target.value;
     this.clearError();
   }
 
@@ -134,16 +115,16 @@ export class LoginComponent implements OnInit, OnDestroy {
   fillDemoCredentials(role: string): void {
     switch (role) {
       case 'admin':
-        this.loginForm.username = 'admin';
-        this.loginForm.password = 'admin123';
+        this.loginForm.correo = 'admin@envios.com';
+        this.loginForm.contrasena = 'admin123';
         break;
       case 'user':
-        this.loginForm.username = 'usuario';
-        this.loginForm.password = 'user123';
+        this.loginForm.correo = 'usuario@envios.com';
+        this.loginForm.contrasena = 'user123';
         break;
       case 'operator':
-        this.loginForm.username = 'operador';
-        this.loginForm.password = 'op123';
+        this.loginForm.correo = 'operador@envios.com';
+        this.loginForm.contrasena = 'op123';
         break;
     }
   }

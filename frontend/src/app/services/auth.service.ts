@@ -5,23 +5,30 @@ import { tap, catchError } from 'rxjs/operators';
 
 // Interfaces para la autenticación
 interface LoginRequest {
-  username: string;
-  password: string;
+  correo: string;
+  contrasena: string;
 }
 
 interface LoginResponse {
   success: boolean;
-  message: string;
+  message?: string;
   data?: {
-    user: {
-      id: string;
-      username: string;
-      name: string;
-      role: string;
-      email: string;
+    usuario: {
+      id: number;
+      correo: string;
+      nombre: string;
+      telefono?: string;
+      id_rol?: number;
+      activo?: boolean;
+    };
+    rol?: {
+      id: number;
+      nombre_rol: string;
+      descripcion?: string;
     };
     token: string;
   };
+  error?: string;
 }
 
 interface User {
@@ -63,10 +70,10 @@ export class AuthService {
   /**
    * Realizar login con credenciales
    */
-  login(username: string, password: string): Observable<LoginResponse> {
-    const loginData: LoginRequest = { username, password };
+  login(correo: string, contrasena: string): Observable<LoginResponse> {
+    const loginData: LoginRequest = { correo, contrasena };
     
-    console.log('🔐 Iniciando login para usuario:', username);
+    console.log('🔐 Iniciando login para usuario:', correo);
     console.log('🌐 URL del endpoint:', `${this.apiUrl}/auth/login`);
     console.log('📤 Datos a enviar:', loginData);
 
@@ -78,8 +85,17 @@ export class AuthService {
       tap(response => {
         console.log('📨 Respuesta del servidor:', response);
         
-        if (response.success && response.data && response.data.user) {
-          this.setCurrentUser(response.data.user);
+        if (response.success && response.data && response.data.usuario) {
+          // Convertir el usuario del backend al formato interno
+          const user: User = {
+            id: response.data.usuario.id.toString(),
+            username: response.data.usuario.correo,
+            name: response.data.usuario.nombre,
+            role: response.data.rol?.nombre_rol || 'user',
+            email: response.data.usuario.correo
+          };
+          
+          this.setCurrentUser(user);
           
           // Guardar token si existe
           if (response.data.token) {

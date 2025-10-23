@@ -172,6 +172,245 @@
           <span class="action-text">Cotizar</span>
         </button>
         
+        <button class="action-btn database" (click)="toggleDatabasePanel()">
+          <span class="action-icon">🗄️</span>
+          <span class="action-text">Base de Datos</span>
+        </button>
+        
+        <button class="action-btn secondary">
+          <span class="action-icon">👤</span>
+          <span class="action-text">Crear Usuario</span>
+        </button>
+        
+        <button class="action-btn info">
+          <span class="action-icon">📊</span>
+          <span class="action-text">Ver Reportes</span>
+        </button>
+        
+        <button class="action-btn warning">
+          <span class="action-icon">⚙️</span>
+          <span class="action-text">Configuración</span>
+        </button>
+        
+      </div>
+    </section>
+
+    <!-- Database Management Panel -->
+    <section class="database-section" *ngIf="showDatabasePanel && currentUser?.role === 'admin'">
+      <div class="database-header">
+        <h3 class="section-title">
+          <span class="title-icon">🗄️</span>
+          Gestión de Base de Datos
+        </h3>
+        <div class="database-actions">
+          <button class="db-btn refresh" (click)="refreshDatabase()" [disabled]="loadingDB">
+            <span *ngIf="!loadingDB">🔄</span>
+            <span *ngIf="loadingDB" class="spinner">⟳</span>
+            Actualizar
+          </button>
+          <button class="db-btn close" (click)="toggleDatabasePanel()">
+            ✖ Cerrar
+          </button>
+        </div>
+      </div>
+
+      <!-- Database Status -->
+      <div class="db-status-card" *ngIf="dbStatus">
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-label">Estado</div>
+            <div class="status-value connected">
+              <span class="status-indicator">●</span>
+              {{ dbStatus.connected ? 'Conectado' : 'Desconectado' }}
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Base de Datos</div>
+            <div class="status-value">{{ dbStatus.database }}</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Versión MySQL</div>
+            <div class="status-value">{{ dbStatus.version }}</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">Hora del Servidor</div>
+            <div class="status-value">{{ dbStatus.serverTime | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="database-content">
+        <!-- Tables List -->
+        <div class="db-sidebar">
+          <h4 class="sidebar-title">Tablas ({{ dbTables.length }})</h4>
+          <div class="tables-list">
+            <div 
+              class="table-item"
+              *ngFor="let table of dbTables"
+              [class.active]="selectedTable?.name === table.name"
+              (click)="selectTable(table)"
+            >
+              <div class="table-icon">📋</div>
+              <div class="table-info">
+                <div class="table-name">{{ table.name }}</div>
+                <div class="table-count">{{ table.rowCount }} registros</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Details -->
+        <div class="db-main">
+          <div *ngIf="!selectedTable && queryResults.length === 0" class="db-placeholder">
+            <div class="placeholder-icon">🗂️</div>
+            <div class="placeholder-text">Selecciona una tabla para ver sus datos</div>
+          </div>
+
+          <!-- Table Data View -->
+          <div *ngIf="selectedTable" class="table-view">
+            <div class="table-view-header">
+              <h4 class="table-view-title">
+                {{ selectedTable.name }}
+                <span class="table-badge">{{ totalRows }} registros</span>
+              </h4>
+              <div class="pagination" *ngIf="totalRows > pageSize">
+                <button 
+                  class="page-btn" 
+                  (click)="previousPage()" 
+                  [disabled]="currentPage === 0 || loadingDB"
+                >
+                  ← Anterior
+                </button>
+                <span class="page-info">
+                  Página {{ currentPage + 1 }} de {{ getTotalPages() }}
+                </span>
+                <button 
+                  class="page-btn" 
+                  (click)="nextPage()" 
+                  [disabled]="(currentPage + 1) * pageSize >= totalRows || loadingDB"
+                >
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+
+            <!-- Column Info -->
+            <div class="columns-info">
+              <h5>Estructura de la tabla</h5>
+              <div class="columns-grid">
+                <div class="column-item" *ngFor="let col of selectedTable.columns">
+                  <span class="col-name">{{ col.name }}</span>
+                  <span class="col-type">{{ col.type }}</span>
+                  <span class="col-key" *ngIf="col.key">🔑 {{ col.key }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table Data -->
+            <div class="table-data" *ngIf="!loadingDB && tableData.length > 0">
+              <div class="table-scroll">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th *ngFor="let key of getObjectKeys(tableData[0])">{{ key }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of tableData">
+                      <td *ngFor="let key of getObjectKeys(row)">
+                        {{ row[key] !== null ? row[key] : '(null)' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="loading-state" *ngIf="loadingDB">
+              <div class="spinner-large">⟳</div>
+              <p>Cargando datos...</p>
+            </div>
+
+            <div class="empty-state" *ngIf="!loadingDB && tableData.length === 0">
+              <div class="empty-icon">📭</div>
+              <p>No hay datos en esta tabla</p>
+            </div>
+          </div>
+
+          <!-- Query Results View -->
+          <div *ngIf="queryResults.length > 0" class="query-results">
+            <div class="results-header">
+              <h4 class="results-title">
+                Resultados de la consulta
+                <span class="table-badge">{{ queryResults.length }} registros</span>
+              </h4>
+              <button class="clear-btn" (click)="queryResults = []">
+                Limpiar resultados
+              </button>
+            </div>
+
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th *ngFor="let key of getObjectKeys(queryResults[0])">{{ key }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of queryResults">
+                    <td *ngFor="let key of getObjectKeys(row)">
+                      {{ row[key] !== null ? row[key] : '(null)' }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Query Section -->
+      <div class="query-section">
+        <h4 class="query-title">
+          <span class="title-icon">🔍</span>
+          Consulta Personalizada (Solo SELECT)
+        </h4>
+        <div class="query-form">
+          <textarea 
+            class="query-input"
+            [(ngModel)]="customQuery"
+            placeholder="Ejemplo: SELECT * FROM usuarios LIMIT 10"
+            rows="3"
+          ></textarea>
+          <button 
+            class="query-btn" 
+            (click)="executeCustomQuery()" 
+            [disabled]="loadingDB || !customQuery.trim()"
+          >
+            <span *ngIf="!loadingDB">▶ Ejecutar</span>
+            <span *ngIf="loadingDB" class="spinner">⟳ Ejecutando...</span>
+          </button>
+        </div>
+        <div class="query-hint">
+          💡 Solo se permiten consultas SELECT por seguridad
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="actions-section" *ngIf="currentUser?.role === 'admin'">
+      <h3 class="section-title">
+        <span class="title-icon">⚡</span>
+        Acciones Rápidas
+      </h3>
+      
+      <div class="actions-grid">
+        
+        <button class="action-btn primary" (click)="navigateTo('/cotizar')">
+          <span class="action-icon">💰</span>
+          <span class="action-text">Cotizar</span>
+        </button>
+        
     
         
         <button class="action-btn secondary">

@@ -1,0 +1,328 @@
+<div class="crear-guia-container">
+  <div class="header">
+    <h2>📦 Crear Nueva Guía de Envío</h2>
+    <p>Complete todos los campos para generar una nueva guía de envío</p>
+  </div>
+
+  <!-- Mensajes de estado -->
+  <div *ngIf="errorMessage" class="alert alert-error">
+    <i class="icon-error">❌</i>
+    {{ errorMessage }}
+    <button class="close-btn" (click)="clearMessages()">×</button>
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    <i class="icon-success">✅</i>
+    {{ successMessage }}
+    <button class="close-btn" (click)="clearMessages()">×</button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Cargando catálogos...</p>
+  </div>
+
+  <!-- Formulario -->
+  <form [formGroup]="guiaForm" (ngSubmit)="onSubmit()" class="guia-form" *ngIf="!isLoading">
+    
+    <!-- Sección Remitente -->
+    <div class="form-section">
+      <h3>📤 Información del Remitente</h3>
+      
+      <div formGroupName="remitente" class="form-grid">
+        <div class="form-group">
+          <label for="remitente-nombre">Nombre Completo *</label>
+          <input 
+            type="text" 
+            id="remitente-nombre"
+            formControlName="nombre"
+            placeholder="Ingrese el nombre completo"
+            [class.error]="isFieldInvalid('remitente.nombre')">
+          <div *ngIf="isFieldInvalid('remitente.nombre')" class="error-message">
+            {{ getFieldError('remitente.nombre') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="remitente-telefono">Teléfono *</label>
+          <input 
+            type="tel" 
+            id="remitente-telefono"
+            formControlName="telefono"
+            placeholder="12345678"
+            [class.error]="isFieldInvalid('remitente.telefono')">
+          <div *ngIf="isFieldInvalid('remitente.telefono')" class="error-message">
+            {{ getFieldError('remitente.telefono') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Dirección del Remitente -->
+      <h4>📍 Dirección del Remitente</h4>
+      <div formGroupName="direccion_remitente" class="form-grid">
+        <div class="form-group">
+          <label for="remitente-departamento">Departamento *</label>
+          <select 
+            id="remitente-departamento"
+            formControlName="departamento"
+            [class.error]="isFieldInvalid('direccion_remitente.departamento')">
+            <option value="">Seleccione departamento</option>
+            <option *ngFor="let dept of departamentos" [value]="dept">{{ dept }}</option>
+          </select>
+          <div *ngIf="isFieldInvalid('direccion_remitente.departamento')" class="error-message">
+            {{ getFieldError('direccion_remitente.departamento') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="remitente-municipio">Municipio *</label>
+          <input 
+            type="text" 
+            id="remitente-municipio"
+            formControlName="municipio"
+            placeholder="Ingrese el municipio"
+            [class.error]="isFieldInvalid('direccion_remitente.municipio')">
+          <div *ngIf="isFieldInvalid('direccion_remitente.municipio')" class="error-message">
+            {{ getFieldError('direccion_remitente.municipio') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="remitente-aldea">Aldea/Colonia</label>
+          <input 
+            type="text" 
+            id="remitente-aldea"
+            formControlName="aldea"
+            placeholder="Aldea o colonia (opcional)">
+        </div>
+
+        <div class="form-group">
+          <label for="remitente-zona">Zona</label>
+          <input 
+            type="text" 
+            id="remitente-zona"
+            formControlName="zona"
+            placeholder="Zona (opcional)">
+        </div>
+
+        <div class="form-group form-group-full">
+          <label for="remitente-detalle">Dirección Detallada</label>
+          <textarea 
+            id="remitente-detalle"
+            formControlName="direccion_detalle"
+            placeholder="Descripción detallada de la dirección"
+            rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección Destinatario -->
+    <div class="form-section">
+      <h3>📥 Información del Destinatario</h3>
+      
+      <div formGroupName="destinatario" class="form-grid">
+        <div class="form-group">
+          <label for="destinatario-nombre">Nombre Completo *</label>
+          <input 
+            type="text" 
+            id="destinatario-nombre"
+            formControlName="nombre"
+            placeholder="Ingrese el nombre completo"
+            [class.error]="isFieldInvalid('destinatario.nombre')">
+          <div *ngIf="isFieldInvalid('destinatario.nombre')" class="error-message">
+            {{ getFieldError('destinatario.nombre') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="destinatario-telefono">Teléfono *</label>
+          <input 
+            type="tel" 
+            id="destinatario-telefono"
+            formControlName="telefono"
+            placeholder="12345678"
+            [class.error]="isFieldInvalid('destinatario.telefono')">
+          <div *ngIf="isFieldInvalid('destinatario.telefono')" class="error-message">
+            {{ getFieldError('destinatario.telefono') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Dirección del Destinatario -->
+      <h4>📍 Dirección del Destinatario</h4>
+      <div formGroupName="direccion_destinatario" class="form-grid">
+        <div class="form-group">
+          <label for="destinatario-departamento">Departamento *</label>
+          <select 
+            id="destinatario-departamento"
+            formControlName="departamento"
+            [class.error]="isFieldInvalid('direccion_destinatario.departamento')">
+            <option value="">Seleccione departamento</option>
+            <option *ngFor="let dept of departamentos" [value]="dept">{{ dept }}</option>
+          </select>
+          <div *ngIf="isFieldInvalid('direccion_destinatario.departamento')" class="error-message">
+            {{ getFieldError('direccion_destinatario.departamento') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="destinatario-municipio">Municipio *</label>
+          <input 
+            type="text" 
+            id="destinatario-municipio"
+            formControlName="municipio"
+            placeholder="Ingrese el municipio"
+            [class.error]="isFieldInvalid('direccion_destinatario.municipio')">
+          <div *ngIf="isFieldInvalid('direccion_destinatario.municipio')" class="error-message">
+            {{ getFieldError('direccion_destinatario.municipio') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="destinatario-aldea">Aldea/Colonia</label>
+          <input 
+            type="text" 
+            id="destinatario-aldea"
+            formControlName="aldea"
+            placeholder="Aldea o colonia (opcional)">
+        </div>
+
+        <div class="form-group">
+          <label for="destinatario-zona">Zona</label>
+          <input 
+            type="text" 
+            id="destinatario-zona"
+            formControlName="zona"
+            placeholder="Zona (opcional)">
+        </div>
+
+        <div class="form-group form-group-full">
+          <label for="destinatario-detalle">Dirección Detallada</label>
+          <textarea 
+            id="destinatario-detalle"
+            formControlName="direccion_detalle"
+            placeholder="Descripción detallada de la dirección"
+            rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección Información del Envío -->
+    <div class="form-section">
+      <h3>📋 Información del Envío</h3>
+      
+      <div formGroupName="guia" class="form-grid">
+        <div class="form-group">
+          <label for="bodega-origen">Bodega de Origen *</label>
+          <select 
+            id="bodega-origen"
+            formControlName="id_bodega_origen"
+            [class.error]="isFieldInvalid('guia.id_bodega_origen')">
+            <option value="">Seleccione bodega de origen</option>
+            <option *ngFor="let bodega of bodegasOrigen" [value]="bodega.id_bodega">
+              {{ bodega.nombre }} - {{ bodega.sucursal?.nombre }}
+            </option>
+          </select>
+          <div *ngIf="isFieldInvalid('guia.id_bodega_origen')" class="error-message">
+            {{ getFieldError('guia.id_bodega_origen') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="bodega-destino">Bodega de Destino *</label>
+          <select 
+            id="bodega-destino"
+            formControlName="id_bodega_destino"
+            [class.error]="isFieldInvalid('guia.id_bodega_destino')">
+            <option value="">Seleccione bodega de destino</option>
+            <option *ngFor="let bodega of bodegasDestino" [value]="bodega.id_bodega">
+              {{ bodega.nombre }} - {{ bodega.sucursal?.nombre }}
+            </option>
+          </select>
+          <div *ngIf="isFieldInvalid('guia.id_bodega_destino')" class="error-message">
+            {{ getFieldError('guia.id_bodega_destino') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="tipo-envio">Tipo de Envío *</label>
+          <select 
+            id="tipo-envio"
+            formControlName="tipo_envio"
+            [class.error]="isFieldInvalid('guia.tipo_envio')">
+            <option *ngFor="let tipo of tiposEnvio" [value]="tipo.value">
+              {{ tipo.label }}
+            </option>
+          </select>
+          <div *ngIf="isFieldInvalid('guia.tipo_envio')" class="error-message">
+            {{ getFieldError('guia.tipo_envio') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="peso">Peso (kg) *</label>
+          <input 
+            type="number" 
+            id="peso"
+            formControlName="peso"
+            placeholder="0.5"
+            step="0.1"
+            min="0.1"
+            (input)="calculateCost()"
+            [class.error]="isFieldInvalid('guia.peso')">
+          <div *ngIf="isFieldInvalid('guia.peso')" class="error-message">
+            {{ getFieldError('guia.peso') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="dimensiones">Dimensiones</label>
+          <input 
+            type="text" 
+            id="dimensiones"
+            formControlName="dimensiones"
+            placeholder="Alto x Ancho x Largo (cm)">
+        </div>
+
+        <div class="form-group">
+          <label for="costo">Costo (Q) *</label>
+          <div class="input-group">
+            <span class="input-prefix">Q</span>
+            <input 
+              type="number" 
+              id="costo"
+              formControlName="costo"
+              placeholder="0.00"
+              step="0.01"
+              min="1"
+              [class.error]="isFieldInvalid('guia.costo')">
+          </div>
+          <div *ngIf="isFieldInvalid('guia.costo')" class="error-message">
+            {{ getFieldError('guia.costo') }}
+          </div>
+          <small class="help-text">El costo se calcula automáticamente al ingresar el peso</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="form-actions">
+      <button 
+        type="button" 
+        class="btn btn-secondary"
+        (click)="resetForm()"
+        [disabled]="isSubmitting">
+        🔄 Limpiar Formulario
+      </button>
+      
+      <button 
+        type="submit" 
+        class="btn btn-primary"
+        [disabled]="!guiaForm.valid || isSubmitting">
+        <span *ngIf="isSubmitting" class="spinner-small"></span>
+        {{ isSubmitting ? 'Creando...' : '📦 Crear Guía' }}
+      </button>
+    </div>
+  </form>
+</div>
