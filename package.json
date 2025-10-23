@@ -7,6 +7,9 @@
     "start": "node servidor-frontend.js",
     "backend": "node backend/server.js",
     "dev": "concurrently \"npm run backend\" \"npm run start\"",
+    "init-db": "node DB/init_database.js",
+    "check-db": "node DB/init_database.js --check",
+    "reset-db": "node DB/init_database.js --reset",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -21,6 +24,14 @@
   "dependencies": {
     "axios": "^1.12.2",
     "express": "^5.1.0",
-    "mysql2": "^3.15.3"
+    "mysql2": "^3.15.3",
+    "cors": "^2.8.5",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "dotenv": "^16.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "concurrently": "^8.2.0"
   }
 }

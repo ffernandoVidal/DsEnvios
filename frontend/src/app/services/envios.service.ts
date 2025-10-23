@@ -600,6 +600,66 @@ export class EnviosService {
   }
 
   /**
+   * Crear un nuevo envío
+   */
+  createShipment(shipmentData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/shipments/create-with-validation`, shipmentData).pipe(
+      tap(response => {
+        console.log('📦 Envío creado:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Error al crear envío:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Obtener tipos de paquete disponibles
+   */
+  getPackageTypes(): Observable<PackageType[]> {
+    return this.http.get<PackageType[]>(`${this.apiUrl}/package-types`).pipe(
+      tap(response => {
+        console.log('📦 Tipos de paquete obtenidos:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Error al obtener tipos de paquete:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Obtener métodos de pago disponibles
+   */
+  getPaymentMethods(): Observable<PaymentMethod[]> {
+    return this.http.get<PaymentMethod[]>(`${this.apiUrl}/payment-methods`).pipe(
+      tap(response => {
+        console.log('💳 Métodos de pago obtenidos:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Error al obtener métodos de pago:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Obtener datos de ubicación (departamentos, municipios, etc.)
+   */
+  getLocationData(): Observable<LocationData> {
+    return this.http.get<LocationData>(`${this.apiUrl}/locations/guatemala`).pipe(
+      tap(response => {
+        console.log('🌍 Datos de ubicación obtenidos:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Error al obtener datos de ubicación:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
    * Obtener departamentos de Guatemala
    */
   obtenerDepartamentos(): Observable<any> {

@@ -8,7 +8,6 @@ import { AppComponent } from './app.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { HomeComponent } from './components/home/home.component';
 import { CotizarComponent } from './components/cotizar/cotizar.component';
-import { RealizarEnvioComponent } from './components/realizar-envio/realizar-envio.component';
 import { RastreoComponent } from './components/rastreo/rastreo.component';
 import { ContactoComponent } from './components/contacto/contacto.component';
 import { LoginComponent } from './components/login/login.component';
@@ -31,7 +30,6 @@ import { RoleGuard } from './guards/role.guard';
     NavbarComponent,
     HomeComponent,
     CotizarComponent,
-    RealizarEnvioComponent,
     RastreoComponent,
     ContactoComponent,
     LoginComponent,

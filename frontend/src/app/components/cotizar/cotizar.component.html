@@ -81,12 +81,12 @@
               (blur)="ocultarLista('destino')"
             >
             <button *ngIf="destinoSeleccionado" class="clear-btn" (click)="limpiarDestino()">✕</button>
-            <button class="list-btn" (click)="mostrarListaCompleta('destino')">📋</button>
+            <button class="list-btn" (click)="mostrarListaCompleta('destino')"></button>
           </div>
           
           <div class="dropdown" *ngIf="mostrarListaDestino || (destinoFiltrado.length > 0 && busquedaDestino !== destinoSeleccionado)">
             <div class="dropdown-header">
-              <span>🎯 Selecciona el destino</span>
+              <span> Selecciona el destino</span>
               <input 
                 type="text" 
                 class="dropdown-search"
@@ -133,7 +133,7 @@
           [disabled]="!tipoSeleccionado"
           (click)="agregarPaquete()"
         >
-          <span class="btn-icon">➕</span>
+          <span class="btn-icon"></span>
           Agregar Paquete
         </button>
       </div>

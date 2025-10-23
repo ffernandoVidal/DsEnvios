@@ -437,13 +437,13 @@ export class CotizarComponent implements OnInit, OnDestroy {
       servicio: this.servicioSeleccionado
     };
 
-    console.log('🚀 Enviando solicitud de cotización:', requestData);
+    console.log(' Enviando solicitud de cotización:', requestData);
 
     // Llamar al servicio
     this.subscription.add(
       this.enviosService.cotizarEnvio(requestData).subscribe({
         next: (response) => {
-          console.log('✅ Cotización recibida:', response);
+          console.log('Cotización recibida:', response);
           this.cotizacionResultado = response;
           this.cotizacionEnProceso = false;
           
@@ -458,7 +458,7 @@ export class CotizarComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('❌ Error en cotización:', error);
+          console.error(' Error en cotización:', error);
           this.cotizacionEnProceso = false;
           this.mensajeError = 'Error al obtener la cotización. Por favor intenta nuevamente.';
           

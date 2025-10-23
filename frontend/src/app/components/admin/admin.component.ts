@@ -114,12 +114,6 @@ export class AdminComponent implements OnInit, OnDestroy {
         icon: '💰',
         route: '/cotizar',
         description: 'Realizar cotización'
-      },
-      {
-        title: 'Nuevo Envío',
-        icon: '📋',
-        route: '/realizar-envio',
-        description: 'Crear un nuevo envío'
       }
     ];
 
@@ -181,12 +175,6 @@ export class AdminComponent implements OnInit, OnDestroy {
           icon: '💰',
           route: '/cotizar',
           description: 'Realizar cotización'
-        },
-        {
-          title: 'Nuevo Envío',
-          icon: '📋',
-          route: '/realizar-envio',
-          description: 'Crear un nuevo envío'
         },
         {
           title: 'Mis Envíos',
@@ -252,8 +240,8 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   navigateToNewShipment(): void {
-    console.log('🚚 Navegando a crear nuevo envío...');
-    this.router.navigate(['/realizar-envio']);
+    console.log('🚚 Navegando a cotizar envío...');
+    this.router.navigate(['/cotizar']);
   }
 
   onMenuItemClick(item: any): void {
@@ -268,8 +256,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     // Rutas que están funcionando
     if (item.route === '/cotizar' || 
         item.route === '/admin' || 
-        item.route === '/' || 
-        item.route === '/realizar-envio') {
+        item.route === '/') {
       this.router.navigate([item.route]);
       return;
     }
