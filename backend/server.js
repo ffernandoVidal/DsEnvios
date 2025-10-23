@@ -7,12 +7,15 @@ const axios = require('axios');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+// Importar configuración de base de datos
+const { dbConfig } = require('./config/database');
+
 const app = express();
 const PORT = process.env.PORT || 3005;
 
 // Configuración de MongoDB
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/';
-const DB_NAME = process.env.DB_NAME || 'enviosdb';
+const DB_NAME = process.env.DB_NAME || 'enviosdb1';
 
 // Configuración de Forza Ecommerce Engine
 const FORZA_CONFIG = {
@@ -39,6 +42,11 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
+
+// Importar rutas
+const shipmentsRoutes = require('./routes/shipments');
+const configRoutes = require('./routes/config');
+const databaseRoutes = require('./routes/database');
 
 // ============================================
 // MIDDLEWARE DE AUTENTICACIÓN
@@ -348,15 +356,21 @@ function calculateDeliveryTime(serviceType, distance) {
 async function connectToMongoDB() {
     try {
         console.log('🔄 Conectando a MongoDB...');
-        mongoClient = new MongoClient(MONGO_URI);
-        await mongoClient.connect();
-        await mongoClient.db("admin").command({ ping: 1 });
         
-        db = mongoClient.db(DB_NAME);
+        // Usar el configurador de base de datos
+        await dbConfig.autoInitialize();
+        
+        // Obtener conexión configurada
+        const { client, db: database } = await dbConfig.getConnection();
+        mongoClient = client;
+        db = database;
+        
         console.log('✅ MongoDB conectado exitosamente:', DB_NAME);
+        console.log('✅ Base de datos inicializada y lista para usar');
         
+        // Crear usuarios por defecto (mantener funcionalidad existente)
         await createDefaultUsers();
-        await initializeCollections();
+        
         return true;
     } catch (error) {
         console.error('❌ Error conectando a MongoDB:', error.message);
@@ -711,10 +725,10 @@ async function initializeCollections() {
             console.log('📦 Tipos de paquetes por defecto creados');
         }
         
-        console.log('✅ Colecciones e índices inicializados correctamente');
+        console.log('Colecciones e índices inicializados correctamente');
         
     } catch (error) {
-        console.error('❌ Error inicializando colecciones:', error.message);
+        console.error(' Error inicializando colecciones:', error.message);
     }
 }
 
@@ -757,14 +771,14 @@ async function callForzaAPI(endpoint, method = 'GET', data = null) {
         console.log(`🔗 Llamando Forza API: ${method} ${config.url}`);
         const response = await axios(config);
         
-        console.log('✅ Respuesta de Forza API recibida');
+        console.log('Respuesta de Forza API recibida');
         return {
             success: true,
             data: response.data,
             status: response.status
         };
     } catch (error) {
-        console.error('❌ Error en Forza API:', error.message);
+        console.error('Error en Forza API:', error.message);
         return {
             success: false,
             error: error.message,
@@ -805,7 +819,7 @@ app.get('/api/db-status', (req, res) => {
 // Crear nuevo envío
 app.post('/api/shipments', authenticateToken, async (req, res) => {
     try {
-        console.log('📦 Creando nuevo envío...');
+        console.log('Creando nuevo envío...');
         console.log('Usuario autenticado:', req.user);
         console.log('Datos del envío:', JSON.stringify(req.body, null, 2));
 
@@ -948,7 +962,7 @@ app.post('/api/shipments', authenticateToken, async (req, res) => {
         // Insertar en base de datos
         const result = await db.collection('shipments').insertOne(newShipment);
 
-        console.log('✅ Envío creado exitosamente:', trackingNumber);
+        console.log(' Envío creado exitosamente:', trackingNumber);
 
         res.status(201).json({
             success: true,
@@ -962,7 +976,7 @@ app.post('/api/shipments', authenticateToken, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error al crear envío:', error);
+        console.error(' Error al crear envío:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor al crear el envío'
@@ -995,7 +1009,7 @@ app.get('/api/shipments', authenticateToken, async (req, res) => {
             .sort({ createdAt: -1 })
             .toArray();
 
-        console.log(`✅ Se encontraron ${shipments.length} envíos`);
+        console.log(` Se encontraron ${shipments.length} envíos`);
 
         res.json({
             success: true,
@@ -1003,7 +1017,7 @@ app.get('/api/shipments', authenticateToken, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error al obtener envíos:', error);
+        console.error(' Error al obtener envíos:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor'
@@ -3420,12 +3434,127 @@ app.post('/api/shipments/create-with-validation', authenticateToken, async (req,
 });
 
 // ============================================
+// ENDPOINTS PARA FORMULARIO REALIZAR ENVÍO
+// ============================================
+
+// Obtener tipos de paquete
+app.get('/api/package-types', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                message: 'Base de datos no disponible'
+            });
+        }
+
+        const packageTypes = await db.collection('package_types')
+            .find({ active: true })
+            .sort({ base_price: 1 })
+            .toArray();
+
+        res.json({
+            success: true,
+            data: packageTypes
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo tipos de paquete:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Obtener métodos de pago
+app.get('/api/payment-methods', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                message: 'Base de datos no disponible'
+            });
+        }
+
+        const paymentMethods = await db.collection('payment_methods')
+            .find({ active: true })
+            .sort({ display_name: 1 })
+            .toArray();
+
+        res.json({
+            success: true,
+            data: paymentMethods
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo métodos de pago:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// Obtener departamentos
+app.get('/api/departments', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                message: 'Base de datos no disponible'
+            });
+        }
+
+        const departments = await db.collection('departments')
+            .find({ active: true })
+            .sort({ name: 1 })
+            .toArray();
+
+        res.json({
+            success: true,
+            data: departments
+        });
+
+    } catch (error) {
+        console.error('Error obteniendo departamentos:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+// ============================================
+// CONFIGURACIÓN DE RUTAS
+// ============================================
+
+// Función para configurar rutas después de conectar a la base de datos
+function setupRoutes() {
+    // Hacer la base de datos disponible para las rutas
+    shipmentsRoutes.setDB(db);
+    configRoutes.setDB(db);
+    databaseRoutes.setDB(db);
+    
+    // Ruta de inicialización de base de datos (sin autenticación para setup inicial)
+    app.use('/api/database', databaseRoutes);
+    
+    // Usar las rutas con autenticación
+    app.use('/api', authenticateToken, shipmentsRoutes);
+    app.use('/api', authenticateToken, configRoutes);
+}
+
+// ============================================
 // INICIALIZACIÓN DEL SERVIDOR
 // ============================================
 
 async function startServer() {
     try {
         const dbConnected = await connectToMongoDB();
+        
+        if (dbConnected) {
+            // Configurar rutas después de conectar a la base de datos
+            setupRoutes();
+        }
         
         app.listen(PORT, () => {
             console.log('');
@@ -3470,16 +3599,16 @@ async function startServer() {
 }
 
 // Manejar cierre graceful
-/*
 process.on('SIGINT', async () => {
     console.log('\n🔄 Cerrando servidor...');
-    if (mongoClient) {
-        await mongoClient.close();
+    try {
+        await dbConfig.close();
         console.log('📁 MongoDB desconectado');
+    } catch (error) {
+        console.error('❌ Error cerrando MongoDB:', error.message);
     }
     process.exit(0);
 });
-*/
 
 // Manejadores de errores no capturados
 process.on('uncaughtException', (error) => {
