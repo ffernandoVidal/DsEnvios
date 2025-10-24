@@ -1,0 +1,227 @@
+<div class="lista-guias-container">
+  <div class="header">
+    <h2>📋 Lista de Guías de Envío</h2>
+    <p>Gestione y consulte todas las guías de envío registradas en el sistema</p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <h3>🔍 Filtros de Búsqueda</h3>
+    
+    <form [formGroup]="filtroForm" class="filters-form">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="numero-guia">Número de Guía</label>
+          <input 
+            type="text" 
+            id="numero-guia"
+            formControlName="numero_guia"
+            placeholder="Ingrese número de guía"
+            (input)="onFilterChange()">
+        </div>
+
+        <div class="filter-group">
+          <label for="tipo-envio">Tipo de Envío</label>
+          <select 
+            id="tipo-envio"
+            formControlName="tipo_envio"
+            (change)="onFilterChange()">
+            <option *ngFor="let tipo of tiposEnvio" [value]="tipo.value">
+              {{ tipo.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="fecha-inicio">Fecha Inicio</label>
+          <input 
+            type="date" 
+            id="fecha-inicio"
+            formControlName="fecha_inicio"
+            (change)="onFilterChange()">
+        </div>
+
+        <div class="filter-group">
+          <label for="fecha-fin">Fecha Fin</label>
+          <input 
+            type="date" 
+            id="fecha-fin"
+            formControlName="fecha_fin"
+            (change)="onFilterChange()">
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button type="button" class="btn btn-secondary" (click)="clearFilters()">
+          🔄 Limpiar Filtros
+        </button>
+        <button type="button" class="btn btn-primary" (click)="onFilterChange()">
+          🔍 Buscar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="errorMessage" class="alert alert-error">
+    <i class="icon-error">❌</i>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Cargando guías...</p>
+  </div>
+
+  <!-- Tabla de guías -->
+  <div class="table-section" *ngIf="!isLoading">
+    <div class="table-header">
+      <h3>📦 Guías Registradas ({{ totalItems }})</h3>
+      <div class="table-actions">
+        <button class="btn btn-success" routerLink="/crear-guia">
+          ➕ Nueva Guía
+        </button>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="guias.length > 0">
+      <table class="guias-table">
+        <thead>
+          <tr>
+            <th>Número de Guía</th>
+            <th>Remitente</th>
+            <th>Destinatario</th>
+            <th>Origen</th>
+            <th>Destino</th>
+            <th>Peso</th>
+            <th>Costo</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let guia of guias; trackBy: trackByGuia">
+            <td>
+              <span class="guia-number">{{ guia.numero_guia }}</span>
+            </td>
+            <td>
+              <div class="person-info">
+                <strong>{{ guia.remitente_nombre || 'N/A' }}</strong>
+                <small>{{ guia.remitente_telefono || '' }}</small>
+              </div>
+            </td>
+            <td>
+              <div class="person-info">
+                <strong>{{ guia.destinatario_nombre || 'N/A' }}</strong>
+                <small>{{ guia.destinatario_telefono || '' }}</small>
+              </div>
+            </td>
+            <td>
+              <div class="location-info">
+                <strong>{{ guia.bodega_origen_nombre || 'N/A' }}</strong>
+                <small>{{ guia.remitente_departamento || '' }}</small>
+              </div>
+            </td>
+            <td>
+              <div class="location-info">
+                <strong>{{ guia.bodega_destino_nombre || 'N/A' }}</strong>
+                <small>{{ guia.destinatario_departamento || '' }}</small>
+              </div>
+            </td>
+            <td>
+              <span class="weight">{{ guia.peso || 0 }} kg</span>
+            </td>
+            <td>
+              <span class="cost">{{ formatCurrency(guia.costo) }}</span>
+            </td>
+            <td>
+              <span class="type-badge" [class]="'type-' + (guia.tipo_envio || 'nacional').toLowerCase()">
+                {{ guia.tipo_envio || 'NACIONAL' }}
+              </span>
+            </td>
+            <td>
+              <span class="status-badge" [class]="getEstadoBadgeClass(guia.estado_actual || 'En preparación')">
+                {{ guia.estado_actual || 'En preparación' }}
+              </span>
+            </td>
+            <td>
+              <span class="date">{{ formatDate(guia.fecha_creacion) }}</span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button 
+                  class="btn-icon btn-info" 
+                  (click)="verDetalles(guia)"
+                  title="Ver detalles">
+                  👁️
+                </button>
+                <button 
+                  class="btn-icon btn-primary" 
+                  (click)="verSeguimiento(guia.numero_guia)"
+                  title="Ver seguimiento">
+                  📍
+                </button>
+                <button 
+                  class="btn-icon btn-warning" 
+                  (click)="editarGuia(guia)"
+                  title="Editar">
+                  ✏️
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mensaje cuando no hay guías -->
+    <div *ngIf="guias.length === 0" class="no-data">
+      <div class="no-data-icon">📦</div>
+      <h3>No se encontraron guías</h3>
+      <p>No hay guías que coincidan con los filtros aplicados</p>
+      <button class="btn btn-primary" routerLink="/crear-guia">
+        ➕ Crear Primera Guía
+      </button>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination-section" *ngIf="totalPages > 1">
+      <div class="pagination-info">
+        <span>
+          Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - 
+          {{ Math.min(currentPage * itemsPerPage, totalItems) }} 
+          de {{ totalItems }} registros
+        </span>
+      </div>
+
+      <div class="pagination-controls">
+        <button 
+          class="btn-pagination" 
+          (click)="previousPage()"
+          [disabled]="currentPage <= 1">
+          ← Anterior
+        </button>
+
+        <div class="page-numbers">
+          <button 
+            *ngFor="let page of getPages()"
+            class="btn-page"
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)">
+            {{ page }}
+          </button>
+        </div>
+
+        <button 
+          class="btn-pagination" 
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages">
+          Siguiente →
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { DatabaseService, TableInfo, DatabaseStatus } from '../../services/database.service';
 
 interface User {
   id: string;
@@ -53,9 +54,23 @@ export class AdminComponent implements OnInit, OnDestroy {
   // Menú de navegación según el rol
   menuItems: any[] = [];
 
+  // Gestión de Base de Datos
+  showDatabasePanel = false;
+  dbStatus: DatabaseStatus | null = null;
+  dbTables: TableInfo[] = [];
+  selectedTable: TableInfo | null = null;
+  tableData: any[] = [];
+  currentPage = 0;
+  pageSize = 20;
+  totalRows = 0;
+  customQuery = '';
+  queryResults: any[] = [];
+  loadingDB = false;
+
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private databaseService: DatabaseService
   ) {}
 
   ngOnInit(): void {
@@ -248,5 +263,125 @@ export class AdminComponent implements OnInit, OnDestroy {
     
     // Por ahora mostrar mensaje para otras rutas
     alert(`Navegando a: ${item.title}\n(Funcionalidad pendiente)`);
+  }
+
+  // ===================================================
+  // MÉTODOS DE GESTIÓN DE BASE DE DATOS
+  // ===================================================
+
+  toggleDatabasePanel(): void {
+    this.showDatabasePanel = !this.showDatabasePanel;
+    if (this.showDatabasePanel && this.dbTables.length === 0) {
+      this.loadDatabaseInfo();
+    }
+  }
+
+  loadDatabaseInfo(): void {
+    this.loadingDB = true;
+    
+    // Cargar estado de conexión
+    this.databaseService.getStatus().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.dbStatus = response.data;
+        }
+      },
+      error: (error) => {
+        console.error('Error al obtener estado de BD:', error);
+      }
+    });
+
+    // Cargar lista de tablas
+    this.databaseService.getTables().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.dbTables = response.data;
+        }
+        this.loadingDB = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar tablas:', error);
+        this.loadingDB = false;
+      }
+    });
+  }
+
+  selectTable(table: TableInfo): void {
+    this.selectedTable = table;
+    this.currentPage = 0;
+    this.loadTableData();
+  }
+
+  loadTableData(): void {
+    if (!this.selectedTable) return;
+    
+    this.loadingDB = true;
+    const offset = this.currentPage * this.pageSize;
+    
+    this.databaseService.getTableData(this.selectedTable.name, this.pageSize, offset).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.tableData = response.data.rows;
+          this.totalRows = response.data.total;
+        }
+        this.loadingDB = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar datos de tabla:', error);
+        this.loadingDB = false;
+      }
+    });
+  }
+
+  nextPage(): void {
+    if ((this.currentPage + 1) * this.pageSize < this.totalRows) {
+      this.currentPage++;
+      this.loadTableData();
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadTableData();
+    }
+  }
+
+  executeCustomQuery(): void {
+    if (!this.customQuery.trim()) {
+      alert('Por favor ingresa una consulta SQL');
+      return;
+    }
+
+    this.loadingDB = true;
+    this.databaseService.executeQuery(this.customQuery).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.queryResults = response.data.rows;
+          alert(`✅ Consulta ejecutada exitosamente. ${response.data.count} registros encontrados.`);
+        }
+        this.loadingDB = false;
+      },
+      error: (error) => {
+        console.error('Error al ejecutar consulta:', error);
+        alert(`❌ Error: ${error.error?.error || error.message}`);
+        this.loadingDB = false;
+      }
+    });
+  }
+
+  refreshDatabase(): void {
+    this.loadDatabaseInfo();
+    this.selectedTable = null;
+    this.tableData = [];
+    this.queryResults = [];
+  }
+
+  getObjectKeys(obj: any): string[] {
+    return obj ? Object.keys(obj) : [];
+  }
+
+  getTotalPages(): number {
+    return Math.ceil(this.totalRows / this.pageSize);
   }
 }
