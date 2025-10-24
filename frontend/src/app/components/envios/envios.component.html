@@ -1,0 +1,123 @@
+<div class="envios-container">
+  <div class="header">
+    <h1>📦 Panel de Envíos</h1>
+    <button class="btn btn-refresh" (click)="refresh()" [disabled]="loading">
+      🔄 Actualizar
+    </button>
+  </div>
+
+  <!-- Filtros y Búsqueda -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (ngModelChange)="onSearchChange()"
+        placeholder="Buscar por tracking, nombre, departamento..."
+        class="search-input">
+    </div>
+    
+    <div class="filter-box">
+      <label>Estado:</label>
+      <select [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilterChange()" class="status-select">
+        <option *ngFor="let status of statusOptions" [value]="status.value">
+          {{ status.label }}
+        </option>
+      </select>
+    </div>
+    
+    <div class="stats-box">
+      <span class="stats-label">Total:</span>
+      <span class="stats-value">{{ filteredShipments.length }}</span>
+      <span class="stats-label">de {{ shipments.length }}</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-section">
+    <div class="spinner"></div>
+    <p>Cargando envíos...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <!-- Tabla de Envíos -->
+  <div *ngIf="!loading && !error && filteredShipments.length > 0" class="table-container">
+    <table class="envios-table">
+      <thead>
+        <tr>
+          <th>Tracking</th>
+          <th>Remitente</th>
+          <th>Destinatario</th>
+          <th>Origen → Destino</th>
+          <th>Peso</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let shipment of filteredShipments">
+          <td>
+            <strong class="tracking-number">{{ shipment.tracking_number }}</strong>
+          </td>
+          <td>
+            <div class="person-info">
+              <div class="person-name">{{ shipment.sender.name }}</div>
+              <div class="person-phone">{{ shipment.sender.phone }}</div>
+            </div>
+          </td>
+          <td>
+            <div class="person-info">
+              <div class="person-name">{{ shipment.recipient.name }}</div>
+              <div class="person-phone">{{ shipment.recipient.phone }}</div>
+            </div>
+          </td>
+          <td>
+            <div class="route-info">
+              <div class="route-from">{{ shipment.sender.address.department }}</div>
+              <div class="route-arrow">→</div>
+              <div class="route-to">{{ shipment.recipient.address.department }}</div>
+            </div>
+          </td>
+          <td>{{ shipment.package_details.weight }} kg</td>
+          <td>
+            <strong class="cost-amount">{{ formatCurrency(shipment.pricing.total_cost) }}</strong>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(shipment.status)">
+              {{ getStatusLabel(shipment.status) }}
+            </span>
+          </td>
+          <td class="date-cell">{{ formatDate(shipment.created_at) }}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-action btn-view" (click)="viewDetails(shipment)" title="Ver detalles">
+                👁️
+              </button>
+              <button class="btn-action btn-delete" (click)="deleteShipment(shipment)" title="Eliminar">
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- No Results -->
+  <div *ngIf="!loading && !error && filteredShipments.length === 0" class="no-results">
+    <div class="no-results-icon">📭</div>
+    <h3>No se encontraron envíos</h3>
+    <p *ngIf="searchTerm || statusFilter !== 'all'">
+      Intenta ajustar los filtros de búsqueda
+    </p>
+    <p *ngIf="!searchTerm && statusFilter === 'all'">
+      No hay envíos registrados en el sistema
+    </p>
+  </div>
+</div>

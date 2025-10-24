@@ -1,0 +1,304 @@
+<div class="crear-envio-container">
+  <div class="header">
+    <h1>📦 Crear Nuevo Envío</h1>
+    <div class="progress-bar">
+      <div class="progress-step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+        <div class="step-number">1</div>
+        <div class="step-label">Remitente</div>
+      </div>
+      <div class="progress-step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+        <div class="step-number">2</div>
+        <div class="step-label">Destinatario</div>
+      </div>
+      <div class="progress-step" [class.active]="currentStep >= 3" [class.completed]="currentStep > 3">
+        <div class="step-number">3</div>
+        <div class="step-label">Detalles del Paquete</div>
+      </div>
+      <div class="progress-step" [class.active]="currentStep >= 4">
+        <div class="step-number">4</div>
+        <div class="step-label">Confirmación</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-container" *ngIf="!loading">
+    <!-- PASO 1: DATOS DEL REMITENTE -->
+    <div class="form-step" *ngIf="currentStep === 1">
+      <h2>📤 Información del Remitente</h2>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre Completo *</label>
+          <input type="text" [(ngModel)]="shipmentForm.senderName" placeholder="Ej: Juan Pérez García">
+        </div>
+        
+        <div class="form-group">
+          <label>Teléfono *</label>
+          <input type="tel" [(ngModel)]="shipmentForm.senderPhone" placeholder="Ej: 5555-5555">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="email" [(ngModel)]="shipmentForm.senderEmail" placeholder="correo@ejemplo.com">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Departamento de Origen *</label>
+          <select [(ngModel)]="shipmentForm.departmentFromId">
+            <option value="">Seleccione un departamento</option>
+            <option *ngFor="let dept of departmentsFrom" [value]="dept._id">
+              {{ dept.name }} - Zona {{ dept.shipping_zone }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label>Dirección Completa *</label>
+          <textarea [(ngModel)]="shipmentForm.senderAddress" rows="3" 
+                    placeholder="Calle, avenida, número de casa, zona, referencias"></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="nextStep()" 
+                [disabled]="!shipmentForm.senderName || !shipmentForm.senderPhone || !shipmentForm.senderAddress || !shipmentForm.departmentFromId">
+          Siguiente →
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 2: DATOS DEL DESTINATARIO -->
+    <div class="form-step" *ngIf="currentStep === 2">
+      <h2>📥 Información del Destinatario</h2>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre Completo *</label>
+          <input type="text" [(ngModel)]="shipmentForm.recipientName" placeholder="Ej: María López Rodríguez">
+        </div>
+        
+        <div class="form-group">
+          <label>Teléfono *</label>
+          <input type="tel" [(ngModel)]="shipmentForm.recipientPhone" placeholder="Ej: 5555-5555">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="email" [(ngModel)]="shipmentForm.recipientEmail" placeholder="correo@ejemplo.com">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Departamento de Destino *</label>
+          <select [(ngModel)]="shipmentForm.departmentToId">
+            <option value="">Seleccione un departamento</option>
+            <option *ngFor="let dept of departmentsTo" [value]="dept._id">
+              {{ dept.name }} - Zona {{ dept.shipping_zone }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label>Dirección Completa *</label>
+          <textarea [(ngModel)]="shipmentForm.recipientAddress" rows="3" 
+                    placeholder="Calle, avenida, número de casa, zona, referencias"></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="prevStep()">← Anterior</button>
+        <button class="btn btn-primary" (click)="nextStep()" 
+                [disabled]="!shipmentForm.recipientName || !shipmentForm.recipientPhone || !shipmentForm.recipientAddress || !shipmentForm.departmentToId">
+          Siguiente →
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 3: DETALLES DEL PAQUETE -->
+    <div class="form-step" *ngIf="currentStep === 3">
+      <h2>📦 Detalles del Paquete y Servicio</h2>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo de Paquete *</label>
+          <select [(ngModel)]="shipmentForm.packageTypeId" (change)="calculateCost()">
+            <option value="">Seleccione un tipo</option>
+            <option *ngFor="let pkg of packageTypes" [value]="pkg._id">
+              {{ pkg.displayName }} - Hasta {{ pkg.max_weight_kg }}kg
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Peso (kg) *</label>
+          <input type="number" [(ngModel)]="shipmentForm.weightKg" min="0.1" step="0.1" 
+                 (input)="calculateCost()" placeholder="0.0">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Valor Declarado (Q)</label>
+          <input type="number" [(ngModel)]="shipmentForm.declaredValue" min="0" step="0.01" 
+                 (input)="calculateCost()" placeholder="0.00">
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="shipmentForm.fragile">
+            <span>¿Es frágil?</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label>Descripción del Contenido *</label>
+          <input type="text" [(ngModel)]="shipmentForm.description" 
+                 placeholder="Ej: Documentos, ropa, electrónicos, etc.">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo de Servicio *</label>
+          <select [(ngModel)]="shipmentForm.serviceTypeId" (change)="calculateCost()">
+            <option value="">Seleccione un servicio</option>
+            <option *ngFor="let service of serviceTypes" [value]="service._id">
+              {{ service.displayName }} - {{ service.delivery_days }} días
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Método de Pago *</label>
+          <select [(ngModel)]="shipmentForm.paymentMethodId" (change)="calculateCost()">
+            <option value="">Seleccione un método</option>
+            <option *ngFor="let payment of paymentMethods" [value]="payment._id">
+              {{ payment.displayName }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label>Instrucciones Especiales</label>
+          <textarea [(ngModel)]="shipmentForm.specialInstructions" rows="2" 
+                    placeholder="Cualquier instrucción especial para el envío"></textarea>
+        </div>
+      </div>
+
+      <!-- CÁLCULO DE COSTOS -->
+      <div class="cost-calculation" *ngIf="calculatedCost.totalCost > 0">
+        <h3>💰 Detalle de Costos</h3>
+        <div class="cost-row">
+          <span>Costo Base:</span>
+          <span>Q {{ calculatedCost.baseCost.toFixed(2) }}</span>
+        </div>
+        <div class="cost-row">
+          <span>Costo por Distancia:</span>
+          <span>Q {{ calculatedCost.distanceCost.toFixed(2) }}</span>
+        </div>
+        <div class="cost-row">
+          <span>Costo por Peso:</span>
+          <span>Q {{ calculatedCost.weightCost.toFixed(2) }}</span>
+        </div>
+        <div class="cost-row">
+          <span>Costo de Servicio:</span>
+          <span>Q {{ calculatedCost.serviceCost.toFixed(2) }}</span>
+        </div>
+        <div class="cost-row" *ngIf="calculatedCost.insuranceCost > 0">
+          <span>Seguro:</span>
+          <span>Q {{ calculatedCost.insuranceCost.toFixed(2) }}</span>
+        </div>
+        <div class="cost-row" *ngIf="calculatedCost.processingFee > 0">
+          <span>Tarifa de Procesamiento:</span>
+          <span>Q {{ calculatedCost.processingFee.toFixed(2) }}</span>
+        </div>
+        <div class="cost-row total">
+          <span><strong>TOTAL:</strong></span>
+          <span><strong>Q {{ calculatedCost.totalCost.toFixed(2) }}</strong></span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="prevStep()">← Anterior</button>
+        <button class="btn btn-primary" (click)="nextStep()" 
+                [disabled]="!canCalculate() || calculatedCost.totalCost === 0">
+          Siguiente →
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 4: CONFIRMACIÓN -->
+    <div class="form-step" *ngIf="currentStep === 4">
+      <h2>✅ Confirmación del Envío</h2>
+      
+      <div class="confirmation-section">
+        <h3>📤 Remitente</h3>
+        <p><strong>Nombre:</strong> {{ shipmentForm.senderName }}</p>
+        <p><strong>Teléfono:</strong> {{ shipmentForm.senderPhone }}</p>
+        <p><strong>Email:</strong> {{ shipmentForm.senderEmail || 'No proporcionado' }}</p>
+        <p><strong>Dirección:</strong> {{ shipmentForm.senderAddress }}</p>
+      </div>
+
+      <div class="confirmation-section">
+        <h3>📥 Destinatario</h3>
+        <p><strong>Nombre:</strong> {{ shipmentForm.recipientName }}</p>
+        <p><strong>Teléfono:</strong> {{ shipmentForm.recipientPhone }}</p>
+        <p><strong>Email:</strong> {{ shipmentForm.recipientEmail || 'No proporcionado' }}</p>
+        <p><strong>Dirección:</strong> {{ shipmentForm.recipientAddress }}</p>
+      </div>
+
+      <div class="confirmation-section">
+        <h3>📦 Detalles del Paquete</h3>
+        <p><strong>Tipo:</strong> {{ getPackageTypeName(shipmentForm.packageTypeId) }}</p>
+        <p><strong>Peso:</strong> {{ shipmentForm.weightKg }} kg</p>
+        <p><strong>Descripción:</strong> {{ shipmentForm.description }}</p>
+        <p><strong>Valor Declarado:</strong> Q {{ shipmentForm.declaredValue.toFixed(2) }}</p>
+        <p><strong>Frágil:</strong> {{ shipmentForm.fragile ? 'Sí' : 'No' }}</p>
+      </div>
+
+      <div class="confirmation-section">
+        <h3>🚚 Servicio</h3>
+        <p><strong>Tipo de Servicio:</strong> {{ getServiceTypeName(shipmentForm.serviceTypeId) }}</p>
+        <p><strong>Método de Pago:</strong> {{ getPaymentMethodName(shipmentForm.paymentMethodId) }}</p>
+      </div>
+
+      <div class="confirmation-section cost-summary">
+        <h3>💰 Costo Total</h3>
+        <h2 class="total-amount">Q {{ calculatedCost.totalCost.toFixed(2) }}</h2>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="prevStep()">← Anterior</button>
+        <button class="btn btn-success" (click)="createShipment()" [disabled]="loading">
+          <span *ngIf="!loading">✓ Crear Envío</span>
+          <span *ngIf="loading">Creando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENSAJES -->
+  <div class="alert alert-success" *ngIf="success">{{ success }}</div>
+  <div class="alert alert-error" *ngIf="error">{{ error }}</div>
+
+  <!-- LOADING -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando...</p>
+  </div>
+</div>

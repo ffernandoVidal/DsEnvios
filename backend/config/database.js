@@ -21,7 +21,7 @@ class DatabaseConfig {
      * Inicializar automáticamente la BD al arrancar el servidor
      */
     async autoInitialize() {
-        console.log('🔄 Verificando estado de la base de datos...');
+        console.log(' Verificando estado de la base de datos...');
         
         try {
             const initializer = new DatabaseInitializer();
@@ -33,17 +33,17 @@ class DatabaseConfig {
                 .every(name => collections.some(col => col.name === name));
             
             if (!hasRequiredCollections) {
-                console.log('⚠️  Base de datos no inicializada. Ejecutando inicialización automática...');
+                console.log('  Base de datos no inicializada. Ejecutando inicialización automática...');
                 await initializer.initialize();
             } else {
-                console.log('✅ Base de datos ya está inicializada');
+                console.log('Base de datos ya está inicializada');
                 await initializer.close();
             }
             
             this.initialized = true;
             return true;
         } catch (error) {
-            console.error('❌ Error en inicialización automática:', error.message);
+            console.error('Error en inicialización automática:', error.message);
             return false;
         }
     }
@@ -87,7 +87,7 @@ class DatabaseConfig {
             await db.admin().ping();
             return true;
         } catch (error) {
-            console.error('❌ Error de conectividad:', error.message);
+            console.error(' Error de conectividad:', error.message);
             return false;
         }
     }
@@ -114,7 +114,7 @@ class DatabaseConfig {
             
             return stats;
         } catch (error) {
-            console.error('❌ Error al obtener estadísticas:', error.message);
+            console.error(' Error al obtener estadísticas:', error.message);
             return {};
         }
     }

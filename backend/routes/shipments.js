@@ -1,5 +1,5 @@
 /**
- * 📦 RUTAS DE ENVÍOS
+ * RUTAS DE ENVÍOS
  * Sistema DsEnvios - Backend
  * 
  * Manejo completo de envíos, cotizaciones y seguimiento
@@ -24,7 +24,7 @@ router.use((req, res, next) => {
 });
 
 /**
- * 🚚 CREAR ENVÍO COMPLETO
+ *  CREAR ENVÍO COMPLETO
  * Endpoint principal para procesar envíos desde el formulario
  */
 router.post('/shipments/create-with-validation', async (req, res) => {
@@ -471,7 +471,7 @@ router.post('/shipments/create-with-validation', async (req, res) => {
 });
 
 /**
- * 💰 CALCULAR PRECIO DE ENVÍO
+ *  CALCULAR PRECIO DE ENVÍO
  */
 async function calculateShippingPrice(params) {
     const { packageType, paymentMethod, department, weight, value, serviceType } = params;
@@ -576,7 +576,7 @@ async function calculateShippingPrice(params) {
 }
 
 /**
- * 🔢 GENERADORES DE NÚMEROS ÚNICOS
+ * GENERADORES DE NÚMEROS ÚNICOS
  */
 function generateTrackingNumber() {
     const prefix = 'DSE';
@@ -607,7 +607,7 @@ function generateOrderNumber() {
 }
 
 /**
- * ⏰ CALCULAR DÍAS DE ENTREGA ESTIMADOS
+ *  CALCULAR DÍAS DE ENTREGA ESTIMADOS
  */
 function getEstimatedDeliveryDays(department, serviceType) {
     // Días base por departamento
@@ -653,7 +653,7 @@ function getEstimatedDeliveryDays(department, serviceType) {
 }
 
 /**
- * 📧 CREAR NOTIFICACIÓN
+ *  CREAR NOTIFICACIÓN
  */
 async function createNotification(notificationData) {
     try {
@@ -674,7 +674,7 @@ async function createNotification(notificationData) {
 }
 
 /**
- * 📊 REGISTRAR EVENTO EN LOGS
+ *  REGISTRAR EVENTO EN LOGS
  */
 async function logSystemEvent(eventData) {
     try {

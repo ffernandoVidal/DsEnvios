@@ -1,0 +1,138 @@
+<div class="db-panel-container">
+  <div class="panel-header">
+    <h1>🗄️ Panel de Administración de Base de Datos</h1>
+    <button class="btn-refresh" (click)="loadDBStats()" [disabled]="loading">
+      🔄 Actualizar
+    </button>
+  </div>
+
+  <!-- Mensajes -->
+  <div class="messages">
+    <div class="alert alert-success" *ngIf="success">
+      ✅ {{ success }}
+    </div>
+    <div class="alert alert-error" *ngIf="error">
+      ❌ {{ error }}
+    </div>
+  </div>
+
+  <!-- Estado de la conexión -->
+  <div class="connection-status" *ngIf="dbStats">
+    <div class="status-card" [class.connected]="dbStats.connected">
+      <h3>Estado de Conexión</h3>
+      <div class="status-indicator">
+        <span class="status-dot" [class.active]="dbStats.connected"></span>
+        <span class="status-text">
+          {{ dbStats.connected ? 'Conectado' : 'Desconectado' }}
+        </span>
+      </div>
+      <p><strong>Base de datos:</strong> {{ dbStats.database }}</p>
+      <p><strong>Colecciones:</strong> {{ dbStats.collections?.length || 0 }}</p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando...</p>
+  </div>
+
+  <!-- Lista de colecciones -->
+  <div class="collections-section" *ngIf="dbStats && dbStats.collections">
+    <h2>📚 Colecciones Disponibles</h2>
+    <div class="collections-grid">
+      <div 
+        *ngFor="let collection of dbStats.collections" 
+        class="collection-card"
+        [class.active]="selectedCollection === collection.name"
+        (click)="selectCollection(collection.name)">
+        <div class="collection-icon">📁</div>
+        <div class="collection-info">
+          <h4>{{ collection.name }}</h4>
+          <p>{{ collection.count || 0 }} documentos</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Datos de la colección seleccionada -->
+  <div class="collection-data-section" *ngIf="selectedCollection && collectionData">
+    <div class="section-header">
+      <h2>📄 {{ selectedCollection }}</h2>
+      <div class="actions">
+        <button class="btn-primary" (click)="toggleCreateForm()">
+          ➕ Nuevo Documento
+        </button>
+        <button class="btn-secondary" (click)="loadCollectionData(selectedCollection)">
+          🔄 Recargar
+        </button>
+      </div>
+    </div>
+
+    <!-- Formulario de creación -->
+    <div class="create-form" *ngIf="showCreateForm">
+      <h3>Crear Nuevo Documento</h3>
+      <textarea 
+        [(ngModel)]="newDocument" 
+        placeholder='{"campo": "valor"}'
+        rows="10">
+      </textarea>
+      <div class="form-actions">
+        <button class="btn-primary" (click)="createDocument()">💾 Crear</button>
+        <button class="btn-secondary" (click)="toggleCreateForm()">❌ Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Lista de documentos -->
+    <div class="documents-list">
+      <p class="count-info">Total: {{ collectionData.count }} documentos</p>
+      
+      <div class="document-card" *ngFor="let doc of collectionData.documents">
+        <!-- Modo visualización -->
+        <div *ngIf="editingDocument?._id !== doc._id" class="document-view">
+          <div class="document-header">
+            <span class="document-id">ID: {{ doc._id }}</span>
+            <div class="document-actions">
+              <button class="btn-edit" (click)="editDocument(doc)">✏️ Editar</button>
+              <button class="btn-delete" (click)="deleteDocument(doc._id)">🗑️ Eliminar</button>
+            </div>
+          </div>
+          <pre class="document-content">{{ formatJSON(doc) }}</pre>
+        </div>
+
+        <!-- Modo edición -->
+        <div *ngIf="editingDocument?._id === doc._id" class="document-edit">
+          <h4>Editando documento</h4>
+          <div class="edit-fields">
+            <div *ngFor="let key of Object.keys(editingDocument)" class="field-row">
+              <label>{{ key }}:</label>
+              <input 
+                *ngIf="key !== '_id' && isNotObject(editingDocument[key])"
+                [(ngModel)]="editingDocument[key]"
+                type="text">
+              <textarea 
+                *ngIf="key !== '_id' && isObject(editingDocument[key])"
+                [(ngModel)]="editingDocument[key]"
+                rows="3">
+              </textarea>
+              <span *ngIf="key === '_id'" class="readonly">{{ editingDocument[key] }}</span>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" (click)="updateDocument()">💾 Guardar</button>
+            <button class="btn-secondary" (click)="cancelEdit()">❌ Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="collectionData.documents.length === 0" class="empty-state">
+        <p>📭 No hay documentos en esta colección</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje inicial -->
+  <div class="empty-state" *ngIf="!selectedCollection && dbStats">
+    <p>👆 Selecciona una colección para ver sus datos</p>
+  </div>
+</div>

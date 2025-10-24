@@ -24,7 +24,7 @@ router.use((req, res, next) => {
 });
 
 /**
- * 📦 OBTENER TIPOS DE PAQUETE
+ *  OBTENER TIPOS DE PAQUETE
  */
 router.get('/package-types', async (req, res) => {
     try {
@@ -59,7 +59,7 @@ router.get('/package-types', async (req, res) => {
 });
 
 /**
- * 💳 OBTENER MÉTODOS DE PAGO
+ * OBTENER MÉTODOS DE PAGO
  */
 router.get('/payment-methods', async (req, res) => {
     try {
@@ -91,8 +91,8 @@ router.get('/payment-methods', async (req, res) => {
     }
 });
 
-/**
- * 🌍 OBTENER DEPARTAMENTOS
+/*
+ * OBTENER DEPARTAMENTOS
  */
 router.get('/departments', async (req, res) => {
     try {
@@ -119,7 +119,7 @@ router.get('/departments', async (req, res) => {
 });
 
 /**
- * 🏘️ OBTENER MUNICIPIOS POR DEPARTAMENTO
+ * BTENER MUNICIPIOS POR DEPARTAMENTO
  */
 router.get('/municipalities/:departmentId', async (req, res) => {
     try {
@@ -151,7 +151,7 @@ router.get('/municipalities/:departmentId', async (req, res) => {
 });
 
 /**
- * 🏘️ OBTENER MUNICIPIOS POR NOMBRE DE DEPARTAMENTO
+ *  OBTENER MUNICIPIOS POR NOMBRE DE DEPARTAMENTO
  */
 router.get('/municipalities/by-department/:departmentName', async (req, res) => {
     try {
@@ -194,7 +194,7 @@ router.get('/municipalities/by-department/:departmentName', async (req, res) => 
 });
 
 /**
- * 🎯 OBTENER ALDEAS/POBLADOS POR MUNICIPIO
+ *  OBTENER ALDEAS/POBLADOS POR MUNICIPIO
  */
 router.get('/villages/:municipalityId', async (req, res) => {
     try {
@@ -225,8 +225,8 @@ router.get('/villages/:municipalityId', async (req, res) => {
     }
 });
 
-/**
- * 📍 DIRECCIONES FRECUENTES DEL USUARIO
+/*
+ *  DIRECCIONES FRECUENTES DEL USUARIO
  */
 router.get('/frequent-addresses', async (req, res) => {
     try {
@@ -274,7 +274,7 @@ router.get('/frequent-addresses', async (req, res) => {
 });
 
 /**
- * 💾 GUARDAR DIRECCIÓN FRECUENTE
+ * UARDAR DIRECCIÓN FRECUENTE
  */
 router.post('/frequent-addresses', async (req, res) => {
     try {
@@ -343,7 +343,7 @@ router.post('/frequent-addresses', async (req, res) => {
 });
 
 /**
- * 📈 INCREMENTAR CONTADOR DE USO DE DIRECCIÓN FRECUENTE
+ *  INCREMENTAR CONTADOR DE USO DE DIRECCIÓN FRECUENTE
  */
 router.patch('/frequent-addresses/:addressId/increment', async (req, res) => {
     try {
@@ -392,7 +392,7 @@ router.patch('/frequent-addresses/:addressId/increment', async (req, res) => {
 });
 
 /**
- * 💰 CALCULAR COTIZACIÓN DE ENVÍO
+ *  CALCULAR COTIZACIÓN DE ENVÍO
  */
 router.post('/quote', async (req, res) => {
     try {
@@ -471,7 +471,7 @@ router.post('/quote', async (req, res) => {
 });
 
 /**
- * 💰 CALCULAR PRECIO DE ENVÍO (función auxiliar)
+ *  CALCULAR PRECIO DE ENVÍO (función auxiliar)
  */
 async function calculateShippingPrice(params) {
     const { packageType, paymentMethod, department, weight, value, serviceType } = params;
@@ -576,7 +576,7 @@ async function calculateShippingPrice(params) {
 }
 
 /**
- * ⏰ CALCULAR DÍAS DE ENTREGA ESTIMADOS (función auxiliar)
+ * CALCULAR DÍAS DE ENTREGA ESTIMADOS (función auxiliar)
  */
 function getEstimatedDeliveryDays(department, serviceType) {
     // Días base por departamento

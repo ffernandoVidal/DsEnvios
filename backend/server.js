@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3005;
 
 // Configuración de MongoDB
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/';
-const DB_NAME = process.env.DB_NAME || 'enviosdb1';
+const DB_NAME = process.env.DB_NAME || 'enviosds';
 
 // Configuración de Forza Ecommerce Engine
 const FORZA_CONFIG = {
@@ -45,6 +45,7 @@ app.use(express.json());
 
 // Importar rutas
 const shipmentsRoutes = require('./routes/shipments');
+const shipmentsRoutesNew = require('./routes/shipments.routes');
 const configRoutes = require('./routes/config');
 const databaseRoutes = require('./routes/database');
 
@@ -810,6 +811,202 @@ app.get('/api/db-status', (req, res) => {
         uri: MONGO_URI,
         timestamp: new Date().toISOString()
     });
+});
+
+// ============================================
+// ENDPOINTS DE ADMINISTRACIÓN DE BASE DE DATOS
+// ============================================
+
+// Obtener estadísticas de la base de datos
+app.get('/api/db/stats', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                message: 'Base de datos no conectada'
+            });
+        }
+
+        const collections = await db.listCollections().toArray();
+        const collectionsWithCount = await Promise.all(
+            collections.map(async (col) => {
+                const count = await db.collection(col.name).countDocuments();
+                return {
+                    name: col.name,
+                    count: count
+                };
+            })
+        );
+
+        res.json({
+            database: DB_NAME,
+            connected: true,
+            collections: collectionsWithCount,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error obteniendo estadísticas:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// Obtener documentos de una colección
+app.get('/api/db/collection/:name', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                message: 'Base de datos no conectada'
+            });
+        }
+
+        const { name } = req.params;
+        const limit = parseInt(req.query.limit) || 50;
+        const skip = parseInt(req.query.skip) || 0;
+
+        const collection = db.collection(name);
+        const count = await collection.countDocuments();
+        const documents = await collection.find({})
+            .skip(skip)
+            .limit(limit)
+            .toArray();
+
+        res.json({
+            name,
+            count,
+            documents,
+            limit,
+            skip
+        });
+    } catch (error) {
+        console.error(`Error obteniendo colección ${req.params.name}:`, error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// Crear un nuevo documento en una colección
+app.post('/api/db/collection/:name', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                message: 'Base de datos no conectada'
+            });
+        }
+
+        const { name } = req.params;
+        const document = req.body;
+
+        // Agregar timestamp
+        document.created_at = new Date();
+        document.updated_at = new Date();
+
+        const collection = db.collection(name);
+        const result = await collection.insertOne(document);
+
+        res.json({
+            success: true,
+            message: 'Documento creado exitosamente',
+            insertedId: result.insertedId
+        });
+    } catch (error) {
+        console.error(`Error creando documento en ${req.params.name}:`, error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// Actualizar un documento
+app.put('/api/db/collection/:name/:id', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                message: 'Base de datos no conectada'
+            });
+        }
+
+        const { name, id } = req.params;
+        const updates = req.body;
+
+        // Eliminar _id del objeto de actualización
+        delete updates._id;
+
+        // Agregar timestamp de actualización
+        updates.updated_at = new Date();
+
+        const collection = db.collection(name);
+        const { ObjectId } = require('mongodb');
+        
+        const result = await collection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: updates }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Documento no encontrado'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Documento actualizado exitosamente',
+            modifiedCount: result.modifiedCount
+        });
+    } catch (error) {
+        console.error(`Error actualizando documento en ${req.params.name}:`, error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// Eliminar un documento
+app.delete('/api/db/collection/:name/:id', async (req, res) => {
+    try {
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                message: 'Base de datos no conectada'
+            });
+        }
+
+        const { name, id } = req.params;
+        const collection = db.collection(name);
+        const { ObjectId } = require('mongodb');
+        
+        const result = await collection.deleteOne({ _id: new ObjectId(id) });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Documento no encontrado'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Documento eliminado exitosamente',
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        console.error(`Error eliminando documento en ${req.params.name}:`, error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
 });
 
 // ============================================
@@ -2169,7 +2366,8 @@ app.post('/api/shipments/save-recipient', async (req, res) => {
     }
 });
 
-// Crear envío completo
+// Crear envío completo - DEPRECADO - Ahora se usa /api/shipments/create en routes/shipments.routes.js
+/*
 app.post('/api/shipments/create', async (req, res) => {
     try {
         if (!db) {
@@ -2187,8 +2385,14 @@ app.post('/api/shipments/create', async (req, res) => {
             updated_at: new Date()
         };
 
-        // Insertar en base de datos
+        // Insertar en base de datos principal (shipments)
         const result = await db.collection('shipments').insertOne(shipmentData);
+
+        // También guardar en resumen_envio para el panel
+        await db.collection('resumen_envio').insertOne({
+            ...shipmentData,
+            _id: result.insertedId
+        });
 
         // Crear registro de seguimiento
         const trackingData = {
@@ -2199,7 +2403,7 @@ app.post('/api/shipments/create', async (req, res) => {
                 {
                     date: new Date(),
                     description: 'Envío creado',
-                    location: `${shipmentData.municipality}, ${shipmentData.department}`
+                    location: `${shipmentData.recipient?.address?.municipality || ''}, ${shipmentData.recipient?.address?.department || ''}`
                 }
             ],
             created_at: new Date()
@@ -2225,6 +2429,7 @@ app.post('/api/shipments/create', async (req, res) => {
         });
     }
 });
+*/
 
 // ============================================
 // ENDPOINTS DE AUTENTICACIÓN
@@ -3538,6 +3743,9 @@ function setupRoutes() {
     // Ruta de inicialización de base de datos (sin autenticación para setup inicial)
     app.use('/api/database', databaseRoutes);
     
+    // Rutas de envíos (nueva implementación sin autenticación para testing)
+    app.use('/api/shipments', shipmentsRoutesNew);
+    
     // Usar las rutas con autenticación
     app.use('/api', authenticateToken, shipmentsRoutes);
     app.use('/api', authenticateToken, configRoutes);
@@ -3587,6 +3795,13 @@ async function startServer() {
             console.log('   📍 POST /api/forza/tracking');
             console.log('   📋 POST /api/shipments');
             console.log('   💰 POST /api/quotes');
+            console.log('');
+            console.log('🗄️  Endpoints de administración de base de datos:');
+            console.log('   📊 GET  /api/db/stats');
+            console.log('   📁 GET  /api/db/collection/:name');
+            console.log('   ➕ POST /api/db/collection/:name');
+            console.log('   ✏️  PUT  /api/db/collection/:name/:id');
+            console.log('   🗑️  DELETE /api/db/collection/:name/:id');
             console.log(`🎨 Forza API: ${FORZA_CONFIG.enabled ? '✅ Habilitada' : '❌ Deshabilitada'}`);
             console.log(`💾 MongoDB: ${db ? '✅ Conectada' : '❌ Desconectada'}`);
             console.log('🚀 ===============================================');

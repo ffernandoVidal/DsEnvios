@@ -31,6 +31,20 @@
       </li>
       
       <li class="navbar-item">
+        <a routerLink="/crear-envio" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
+          <span class="nav-icon">📝</span>
+          Crear Envío
+        </a>
+      </li>
+      
+      <li class="navbar-item">
+        <a routerLink="/envios" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
+          <span class="nav-icon">📦</span>
+          Envíos
+        </a>
+      </li>
+      
+      <li class="navbar-item">
         <a routerLink="/rastreo" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
           <span class="nav-icon"></span>
           Rastreo
@@ -40,6 +54,12 @@
         <a routerLink="/contacto" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
           <span class="nav-icon"></span>
           Contacto
+        </a>
+      </li>
+      <li class="navbar-item">
+        <a routerLink="/db-panel" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
+          <span class="nav-icon">🗄️</span>
+          Base de Datos
         </a>
       </li>
     </ul>

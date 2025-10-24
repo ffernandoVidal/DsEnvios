@@ -12,6 +12,9 @@ import { RastreoComponent } from './components/rastreo/rastreo.component';
 import { ContactoComponent } from './components/contacto/contacto.component';
 import { LoginComponent } from './components/login/login.component';
 import { AdminComponent } from './components/admin/admin.component';
+import { DbPanelComponent } from './components/db-panel/db-panel.component';
+import { CrearEnvioComponent } from './components/crear-envio/crear-envio.component';
+import { EnviosComponent } from './components/envios/envios.component';
 
 // Servicios
 import { EnviosService } from './services/envios.service';
@@ -30,7 +33,10 @@ import { RoleGuard } from './guards/role.guard';
     RastreoComponent,
     ContactoComponent,
     LoginComponent,
-    AdminComponent
+    AdminComponent,
+    DbPanelComponent,
+    CrearEnvioComponent,
+    EnviosComponent
   ],
   imports: [
     BrowserModule,

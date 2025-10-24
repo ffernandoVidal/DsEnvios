@@ -6,6 +6,9 @@ import { RastreoComponent } from './components/rastreo/rastreo.component';
 import { ContactoComponent } from './components/contacto/contacto.component';
 import { LoginComponent } from './components/login/login.component';
 import { AdminComponent } from './components/admin/admin.component';
+import { DbPanelComponent } from './components/db-panel/db-panel.component';
+import { CrearEnvioComponent } from './components/crear-envio/crear-envio.component';
+import { EnviosComponent } from './components/envios/envios.component';
 import { AuthGuard } from './guards/auth.guard';
 import { RoleGuard } from './guards/role.guard';
 
@@ -15,6 +18,8 @@ const routes: Routes = [
   { path: 'cotizar', component: CotizarComponent },
   { path: 'rastreo', component: RastreoComponent },
   { path: 'contacto', component: ContactoComponent },
+  { path: 'crear-envio', component: CrearEnvioComponent },
+  { path: 'envios', component: EnviosComponent },
   
   // Ruta de login
   { path: 'login', component: LoginComponent },
@@ -24,6 +29,10 @@ const routes: Routes = [
     path: 'admin', 
     component: AdminComponent,
     canActivate: [AuthGuard]
+  },
+  { 
+    path: 'db-panel', 
+    component: DbPanelComponent
   },
   
   // Rutas adicionales protegidas por rol (para futuro)
