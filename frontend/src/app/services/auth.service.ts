@@ -73,9 +73,9 @@ export class AuthService {
   login(correo: string, contrasena: string): Observable<LoginResponse> {
     const loginData: LoginRequest = { correo, contrasena };
     
-    console.log('🔐 Iniciando login para usuario:', correo);
-    console.log('🌐 URL del endpoint:', `${this.apiUrl}/auth/login`);
-    console.log('📤 Datos a enviar:', loginData);
+    console.log(' Iniciando login para usuario:', correo);
+    console.log(' URL del endpoint:', `${this.apiUrl}/auth/login`);
+    console.log(' Datos a enviar:', loginData);
 
     return this.http.post<LoginResponse>(
       `${this.apiUrl}/auth/login`, 
@@ -83,7 +83,7 @@ export class AuthService {
       this.getHttpOptions()
     ).pipe(
       tap(response => {
-        console.log('📨 Respuesta del servidor:', response);
+        console.log(' Respuesta del servidor:', response);
         
         if (response.success && response.data && response.data.usuario) {
           // Convertir el usuario del backend al formato interno
@@ -102,11 +102,11 @@ export class AuthService {
             localStorage.setItem('authToken', response.data.token);
           }
           
-          console.log('✅ Usuario autenticado correctamente');
+          console.log(' Usuario autenticado correctamente');
         }
       }),
       catchError(error => {
-        console.error('❌ Error en login:', error);
+        console.error(' Error en login:', error);
         this.logout(); // Limpiar cualquier estado previo
         throw error;
       })
@@ -229,7 +229,7 @@ export class AuthService {
         this.currentUserSubject.next(user);
         this.isAuthenticatedSubject.next(true);
         
-        console.log('👤 Usuario cargado desde storage:', user.username);
+        console.log(' Usuario cargado desde storage:', user.username);
         
         // Validar token en el servidor (opcional)
         // this.validateToken().subscribe();

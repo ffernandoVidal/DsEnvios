@@ -1,8 +1,8 @@
 <div class="envios-container">
   <div class="header">
-    <h1>📦 Panel de Envíos</h1>
+    <h1> Panel de Envíos</h1>
     <button class="btn btn-refresh" (click)="refresh()" [disabled]="loading">
-      🔄 Actualizar
+       Actualizar
     </button>
   </div>
 
@@ -97,10 +97,10 @@
           <td>
             <div class="action-buttons">
               <button class="btn-action btn-view" (click)="viewDetails(shipment)" title="Ver detalles">
-                👁️
+                
               </button>
               <button class="btn-action btn-delete" (click)="deleteShipment(shipment)" title="Eliminar">
-                🗑️
+                
               </button>
             </div>
           </td>
@@ -111,7 +111,7 @@
 
   <!-- No Results -->
   <div *ngIf="!loading && !error && filteredShipments.length === 0" class="no-results">
-    <div class="no-results-icon">📭</div>
+    <div class="no-results-icon"></div>
     <h3>No se encontraron envíos</h3>
     <p *ngIf="searchTerm || statusFilter !== 'all'">
       Intenta ajustar los filtros de búsqueda

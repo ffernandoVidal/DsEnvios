@@ -1,5 +1,5 @@
 /**
- * 🔗 CONFIGURACIÓN DE CONEXIÓN A MONGODB - enviosdb1
+ *  CONFIGURACIÓN DE CONEXIÓN A MONGODB - enviosdb1
  * Sistema de Gestión de Envíos DsEnvios
  * 
  * Este archivo maneja todas las conexiones a la base de datos MongoDB
@@ -65,14 +65,14 @@ let database = null;
 const environment = process.env.NODE_ENV || 'development';
 
 /**
- * 🚀 Conectar a MongoDB
+ *  Conectar a MongoDB
  */
 async function connectToDatabase() {
     try {
         const config = DB_CONFIG[environment];
         
-        console.log(`🔄 Conectando a MongoDB (${environment})...`);
-        console.log(`📍 Base de datos: ${config.name}`);
+        console.log(` Conectando a MongoDB (${environment})...`);
+        console.log(` Base de datos: ${config.name}`);
         
         mongoClient = new MongoClient(config.uri, config.options);
         await mongoClient.connect();
@@ -82,8 +82,8 @@ async function connectToDatabase() {
         
         database = mongoClient.db(config.name);
         
-        console.log(`✅ MongoDB conectado exitosamente`);
-        console.log(`🎯 Base de datos activa: ${config.name}`);
+        console.log(` MongoDB conectado exitosamente`);
+        console.log(` Base de datos activa: ${config.name}`);
         
         // Inicializar colecciones si es necesario
         await initializeDatabase();
@@ -91,18 +91,18 @@ async function connectToDatabase() {
         return database;
         
     } catch (error) {
-        console.error('❌ Error conectando a MongoDB:', error.message);
-        console.error('🔧 Verificar que MongoDB esté ejecutándose');
+        console.error(' Error conectando a MongoDB:', error.message);
+        console.error(' Verificar que MongoDB esté ejecutándose');
         throw error;
     }
 }
 
 /**
- * 🏗️ Inicializar base de datos con colecciones básicas
+ *  Inicializar base de datos con colecciones básicas
  */
 async function initializeDatabase() {
     try {
-        console.log('🏗️ Inicializando estructura de base de datos...');
+        console.log(' Inicializando estructura de base de datos...');
         
         // Lista de colecciones necesarias
         const requiredCollections = [
@@ -139,36 +139,36 @@ async function initializeDatabase() {
         for (const collectionName of requiredCollections) {
             if (!existingNames.includes(collectionName)) {
                 await database.createCollection(collectionName);
-                console.log(`📁 Colección creada: ${collectionName}`);
+                console.log(` Colección creada: ${collectionName}`);
             }
         }
         
-        console.log('✅ Estructura de base de datos inicializada');
+        console.log(' Estructura de base de datos inicializada');
         
     } catch (error) {
-        console.error('❌ Error inicializando base de datos:', error);
+        console.error(' Error inicializando base de datos:', error);
         throw error;
     }
 }
 
 /**
- * 🔌 Cerrar conexión a MongoDB
+ *  Cerrar conexión a MongoDB
  */
 async function closeConnection() {
     try {
         if (mongoClient) {
             await mongoClient.close();
-            console.log('📁 Conexión a MongoDB cerrada');
+            console.log(' Conexión a MongoDB cerrada');
             mongoClient = null;
             database = null;
         }
     } catch (error) {
-        console.error('❌ Error cerrando conexión:', error);
+        console.error(' Error cerrando conexión:', error);
     }
 }
 
 /**
- * 🔍 Obtener instancia de la base de datos
+ *  Obtener instancia de la base de datos
  */
 function getDatabase() {
     if (!database) {
@@ -178,7 +178,7 @@ function getDatabase() {
 }
 
 /**
- * 🔍 Obtener cliente de MongoDB
+ *  Obtener cliente de MongoDB
  */
 function getClient() {
     if (!mongoClient) {
@@ -188,7 +188,7 @@ function getClient() {
 }
 
 /**
- * 🏥 Verificar estado de la conexión
+ *  Verificar estado de la conexión
  */
 async function checkHealth() {
     try {
@@ -239,11 +239,11 @@ async function withTransaction(callback) {
 }
 
 /**
- * 🔧 Crear índices optimizados
+ *  Crear índices optimizados
  */
 async function createOptimizedIndexes() {
     try {
-        console.log('🔧 Creando índices optimizados...');
+        console.log(' Creando índices optimizados...');
         
         // Índices para colección users
         await database.collection('users').createIndex({ username: 1 }, { unique: true });
@@ -297,23 +297,23 @@ async function createOptimizedIndexes() {
         await database.collection('transactions').createIndex({ status: 1 });
         await database.collection('transactions').createIndex({ created_at: -1 });
         
-        console.log('✅ Índices optimizados creados exitosamente');
+        console.log(' Índices optimizados creados exitosamente');
         
     } catch (error) {
-        console.error('❌ Error creando índices:', error);
+        console.error(' Error creando índices:', error);
         throw error;
     }
 }
 
 // Manejo de eventos de conexión
 process.on('SIGINT', async () => {
-    console.log('\n🔄 Cerrando aplicación...');
+    console.log('\n Cerrando aplicación...');
     await closeConnection();
     process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-    console.log('\n🔄 Cerrando aplicación...');
+    console.log('\n Cerrando aplicación...');
     await closeConnection();
     process.exit(0);
 });

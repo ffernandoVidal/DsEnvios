@@ -3,7 +3,7 @@
     <!-- Logo -->
     <div class="navbar-logo">
       <a routerLink="/" (click)="closeMenus()">
-        <span class="logo-icon">📦</span>
+        <span class="logo-icon"></span>
         <span class="logo-text">EnviosDS</span>
       </a>
     </div>
@@ -32,14 +32,14 @@
       
       <li class="navbar-item">
         <a routerLink="/crear-envio" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
-          <span class="nav-icon">📝</span>
+          <span class="nav-icon"></span>
           Crear Envío
         </a>
       </li>
       
       <li class="navbar-item">
         <a routerLink="/envios" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
-          <span class="nav-icon">📦</span>
+          <span class="nav-icon"></span>
           Envíos
         </a>
       </li>
@@ -58,7 +58,7 @@
       </li>
       <li class="navbar-item">
         <a routerLink="/db-panel" class="navbar-link" (click)="closeMenus()" routerLinkActive="active">
-          <span class="nav-icon">🗄️</span>
+          <span class="nav-icon"></span>
           Base de Datos
         </a>
       </li>
@@ -87,7 +87,7 @@
             <div class="user-name">{{ currentUser.name }}</div>
             <div class="user-role">{{ getRoleName(currentUser.role) }}</div>
           </div>
-          <span class="dropdown-arrow" [class.open]="isUserMenuOpen">▼</span>
+          <span class="dropdown-arrow" [class.open]="isUserMenuOpen"></span>
         </button>
 
         <!-- Menú desplegable del usuario -->

@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="rastreo-header">
     <h1 class="rastreo-title">
-      <span class="title-icon">📍</span>
+      <span class="title-icon"></span>
       Rastreo de Envío
     </h1>
     <p class="rastreo-subtitle">Ingresa tu número de guía para rastrear tu paquete en tiempo real</p>
@@ -24,14 +24,14 @@
         (click)="buscarEnvio()"
         [disabled]="buscando || !numeroGuia.trim()"
       >
-        <span *ngIf="!buscando">🔍 Rastrear</span>
-        <span *ngIf="buscando" class="spinner">⟳ Buscando...</span>
+        <span *ngIf="!buscando"> Rastrear</span>
+        <span *ngIf="buscando" class="spinner"> Buscando...</span>
       </button>
     </div>
 
     <!-- Error Message -->
     <div class="error-message" *ngIf="error">
-      <span class="error-icon">⚠️</span>
+      <span class="error-icon"></span>
       {{ error }}
     </div>
   </div>
@@ -41,7 +41,7 @@
     
     <!-- Clear Button -->
     <button class="clear-btn" (click)="limpiarBusqueda()">
-      ✖ Nueva Búsqueda
+       Nueva Búsqueda
     </button>
 
     <!-- Guia Info Card -->
@@ -58,7 +58,7 @@
 
       <div class="guia-details">
         <div class="detail-item">
-          <span class="detail-icon">📦</span>
+          <span class="detail-icon"></span>
           <div class="detail-content">
             <span class="detail-label">Tipo de Envío</span>
             <span class="detail-value">{{ guia.tipo_envio }}</span>
@@ -66,7 +66,7 @@
         </div>
 
         <div class="detail-item">
-          <span class="detail-icon">⚖️</span>
+          <span class="detail-icon"></span>
           <div class="detail-content">
             <span class="detail-label">Peso</span>
             <span class="detail-value">{{ guia.peso }} kg</span>
@@ -74,7 +74,7 @@
         </div>
 
         <div class="detail-item">
-          <span class="detail-icon">📅</span>
+          <span class="detail-icon"></span>
           <div class="detail-content">
             <span class="detail-label">Fecha de Creación</span>
             <span class="detail-value">{{ formatearFechaCorta(guia.fecha_creacion) }}</span>
@@ -82,7 +82,7 @@
         </div>
 
         <div class="detail-item">
-          <span class="detail-icon">🎯</span>
+          <span class="detail-icon"></span>
           <div class="detail-content">
             <span class="detail-label">Entrega Estimada</span>
             <span class="detail-value">{{ formatearFechaCorta(guia.fecha_estimada_entrega) }}</span>
@@ -94,7 +94,7 @@
     <!-- Progress Section -->
     <div class="progress-section">
       <h2 class="section-title">
-        <span class="title-icon">📊</span>
+        <span class="title-icon"></span>
         Estado del Envío
       </h2>
 
@@ -123,8 +123,8 @@
           <div class="timeline-content">
             <div class="timeline-title">{{ estado.nombre }}</div>
             <div class="timeline-status">
-              <span *ngIf="estado.completado && !estado.activo" class="status-check">✓</span>
-              <span *ngIf="estado.activo" class="status-current">● Actual</span>
+              <span *ngIf="estado.completado && !estado.activo" class="status-check"></span>
+              <span *ngIf="estado.activo" class="status-current"> Actual</span>
             </div>
           </div>
         </div>
@@ -135,7 +135,7 @@
     <div class="personas-section">
       <div class="persona-card remitente">
         <h3 class="persona-title">
-          <span class="persona-icon">📤</span>
+          <span class="persona-icon"></span>
           Remitente
         </h3>
         <div class="persona-info">
@@ -158,7 +158,7 @@
 
       <div class="persona-card destinatario">
         <h3 class="persona-title">
-          <span class="persona-icon">📥</span>
+          <span class="persona-icon"></span>
           Destinatario
         </h3>
         <div class="persona-info">
@@ -181,7 +181,7 @@
     <!-- Historial Section -->
     <div class="historial-section" *ngIf="historial.length > 0">
       <h2 class="section-title">
-        <span class="title-icon">📋</span>
+        <span class="title-icon"></span>
         Historial de Movimientos
       </h2>
 
@@ -204,7 +204,7 @@
               {{ item.observaciones || item.descripcion }}
             </div>
             <div class="historial-ubicacion" *ngIf="item.ubicacion">
-              📍 {{ item.ubicacion }}
+               {{ item.ubicacion }}
             </div>
           </div>
         </div>
@@ -214,12 +214,12 @@
     <!-- Additional Info -->
     <div class="additional-info" *ngIf="guia.descripcion || guia.notas">
       <div class="info-card" *ngIf="guia.descripcion">
-        <h3>📦 Descripción del Contenido</h3>
+        <h3> Descripción del Contenido</h3>
         <p>{{ guia.descripcion }}</p>
       </div>
 
       <div class="info-card" *ngIf="guia.notas">
-        <h3>📝 Notas Adicionales</h3>
+        <h3> Notas Adicionales</h3>
         <p>{{ guia.notas }}</p>
       </div>
     </div>
@@ -228,7 +228,7 @@
 
   <!-- Empty State -->
   <div class="empty-state" *ngIf="!encontrado && !error && !buscando">
-    <div class="empty-icon">📦</div>
+    <div class="empty-icon"></div>
     <h3>Rastrea tu Envío</h3>
     <p>Ingresa el número de guía para conocer el estado de tu paquete</p>
     

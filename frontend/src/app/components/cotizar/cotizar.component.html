@@ -22,13 +22,13 @@
               (focus)="mostrarListaCompleta('origen')"
               (blur)="ocultarLista('origen')"
             >
-            <button *ngIf="origenSeleccionado" class="clear-btn" (click)="limpiarOrigen()">✕</button>
-            <button class="list-btn" (click)="mostrarListaCompleta('origen')">📋</button>
+            <button *ngIf="origenSeleccionado" class="clear-btn" (click)="limpiarOrigen()"></button>
+            <button class="list-btn" (click)="mostrarListaCompleta('origen')"></button>
           </div>
           
           <div class="dropdown" *ngIf="mostrarListaOrigen || (origenFiltrado.length > 0 && busquedaOrigen !== origenSeleccionado)">
             <div class="dropdown-header">
-              <span>📍 Selecciona el origen</span>
+              <span> Selecciona el origen</span>
               <input 
                 type="text" 
                 class="dropdown-search"
@@ -58,7 +58,7 @@
         </div>
 
         <div class="selected-location" *ngIf="origenSeleccionado">
-          <span class="location-icon">📍</span>
+          <span class="location-icon"></span>
           <span class="location-text">{{ origenSeleccionado }}</span>
           <button class="change-btn" (click)="limpiarOrigen()">Cambiar</button>
         </div>
@@ -80,7 +80,7 @@
               (focus)="mostrarListaCompleta('destino')"
               (blur)="ocultarLista('destino')"
             >
-            <button *ngIf="destinoSeleccionado" class="clear-btn" (click)="limpiarDestino()">✕</button>
+            <button *ngIf="destinoSeleccionado" class="clear-btn" (click)="limpiarDestino()"></button>
             <button class="list-btn" (click)="mostrarListaCompleta('destino')"></button>
           </div>
           
@@ -116,7 +116,7 @@
         </div>
 
         <div class="selected-location" *ngIf="destinoSeleccionado">
-          <span class="location-icon">🎯</span>
+          <span class="location-icon"></span>
           <span class="location-text">{{ destinoSeleccionado }}</span>
           <button class="change-btn" (click)="limpiarDestino()">Cambiar</button>
         </div>
@@ -161,14 +161,14 @@
           </div>
           <p class="paquete-descripcion">{{ tipo.descripcion }}</p>
           <div class="selection-indicator" *ngIf="tipoSeleccionado?.id === tipo.id">
-            ✓ Seleccionado
+             Seleccionado
           </div>
         </div>
       </div>
 
       <!-- PAQUETES AGREGADOS -->
       <div class="paquetes-agregados" *ngIf="paquetesSeleccionados.length > 0">
-        <h3 class="agregados-titulo">📦 Paquetes Agregados ({{ paquetesSeleccionados.length }})</h3>
+        <h3 class="agregados-titulo"> Paquetes Agregados ({{ paquetesSeleccionados.length }})</h3>
         <div class="paquetes-lista">
           <div 
             *ngFor="let paquete of paquetesSeleccionados" 
@@ -208,7 +208,7 @@
                 (click)="eliminarPaquete(paquete.id)"
                 title="Eliminar paquete"
               >
-                🗑️
+                
               </button>
             </div>
           </div>
@@ -224,7 +224,7 @@
         [disabled]="!origenSeleccionado || !destinoSeleccionado || paquetesSeleccionados.length === 0 || cotizacionEnProceso"
         (click)="cotizarEnvio()"
       >
-        <span class="btn-icon" *ngIf="!cotizacionEnProceso">💰</span>
+        <span class="btn-icon" *ngIf="!cotizacionEnProceso"></span>
         <span class="btn-icon spinner" *ngIf="cotizacionEnProceso">⏳</span>
         <span *ngIf="!cotizacionEnProceso">Cotizar Envío</span>
         <span *ngIf="cotizacionEnProceso">Calculando...</span>
@@ -239,7 +239,7 @@
       
       <!-- Error -->
       <div class="error-message" *ngIf="mensajeError">
-        <div class="error-icon">⚠️</div>
+        <div class="error-icon"></div>
         <div class="error-content">
           <h3>Error en la cotización</h3>
           <p>{{ mensajeError }}</p>
@@ -254,18 +254,18 @@
         
         <!-- Header del resultado -->
         <div class="resultado-header">
-          <div class="resultado-icon">✅</div>
+          <div class="resultado-icon"></div>
           <div class="resultado-title">
             <h3>¡Cotización Generada!</h3>
             <p class="resultado-subtitle">{{ cotizacionResultado.message }}</p>
           </div>
-          <button class="close-btn" (click)="limpiarCotizacion()">✕</button>
+          <button class="close-btn" (click)="limpiarCotizacion()"></button>
         </div>
 
         <!-- Información de ruta -->
         <div class="ruta-info">
           <div class="ubicacion origen">
-            <span class="ubicacion-icon">📍</span>
+            <span class="ubicacion-icon"></span>
             <div class="ubicacion-text">
               <strong>Origen:</strong><br>
               {{ cotizacionResultado.cotizacion.origen.display }}
@@ -281,7 +281,7 @@
           </div>
 
           <div class="ubicacion destino">
-            <span class="ubicacion-icon">🎯</span>
+            <span class="ubicacion-icon"></span>
             <div class="ubicacion-text">
               <strong>Destino:</strong><br>
               {{ cotizacionResultado.cotizacion.destino.display }}
@@ -348,7 +348,7 @@
             <span>Tiempo estimado: {{ cotizacionResultado.cotizacion.tiempo_entrega }}</span>
           </div>
           <div class="info-item">
-            <span class="info-icon">📅</span>
+            <span class="info-icon"></span>
             <span>Cotización válida hasta: {{ formatearFecha(cotizacionResultado.cotizacion.valida_hasta) }}</span>
           </div>
         </div>
@@ -356,11 +356,11 @@
         <!-- Acciones -->
         <div class="resultado-acciones">
           <button class="btn-proceder" (click)="procederConEnvio()">
-            <span class="btn-icon">📦</span>
+            <span class="btn-icon"></span>
             Proceder con este envío
           </button>
           <button class="btn-nueva-cotizacion" (click)="nuevaCotizacion()">
-            <span class="btn-icon">🔄</span>
+            <span class="btn-icon"></span>
             Nueva cotización
           </button>
         </div>
@@ -371,12 +371,12 @@
     <!-- INFORMACIÓN ADICIONAL -->
     <div class="info-section">
       <div class="info-card">
-        <h3>📦 Información del Servicio</h3>
+        <h3> Información del Servicio</h3>
         <ul>
-          <li>✅ Cobertura en los 22 departamentos de Guatemala</li>
-          <li>✅ Más de 300 municipios disponibles</li>
-          <li>✅ Cotización gratuita e inmediata</li>
-          <li>✅ Diferentes opciones de envío</li>
+          <li> Cobertura en los 22 departamentos de Guatemala</li>
+          <li> Más de 300 municipios disponibles</li>
+          <li> Cotización gratuita e inmediata</li>
+          <li> Diferentes opciones de envío</li>
         </ul>
       </div>
     </div>

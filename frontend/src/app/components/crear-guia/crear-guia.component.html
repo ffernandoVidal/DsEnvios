@@ -1,18 +1,18 @@
 <div class="crear-guia-container">
   <div class="header">
-    <h2>📦 Crear Nueva Guía de Envío</h2>
+    <h2> Crear Nueva Guía de Envío</h2>
     <p>Complete todos los campos para generar una nueva guía de envío</p>
   </div>
 
   <!-- Mensajes de estado -->
   <div *ngIf="errorMessage" class="alert alert-error">
-    <i class="icon-error">❌</i>
+    <i class="icon-error"></i>
     {{ errorMessage }}
     <button class="close-btn" (click)="clearMessages()">×</button>
   </div>
 
   <div *ngIf="successMessage" class="alert alert-success">
-    <i class="icon-success">✅</i>
+    <i class="icon-success"></i>
     {{ successMessage }}
     <button class="close-btn" (click)="clearMessages()">×</button>
   </div>
@@ -28,7 +28,7 @@
     
     <!-- Sección Remitente -->
     <div class="form-section">
-      <h3>📤 Información del Remitente</h3>
+      <h3> Información del Remitente</h3>
       
       <div formGroupName="remitente" class="form-grid">
         <div class="form-group">
@@ -59,7 +59,7 @@
       </div>
 
       <!-- Dirección del Remitente -->
-      <h4>📍 Dirección del Remitente</h4>
+      <h4> Dirección del Remitente</h4>
       <div formGroupName="direccion_remitente" class="form-grid">
         <div class="form-group">
           <label for="remitente-departamento">Departamento *</label>
@@ -119,7 +119,7 @@
 
     <!-- Sección Destinatario -->
     <div class="form-section">
-      <h3>📥 Información del Destinatario</h3>
+      <h3> Información del Destinatario</h3>
       
       <div formGroupName="destinatario" class="form-grid">
         <div class="form-group">
@@ -150,7 +150,7 @@
       </div>
 
       <!-- Dirección del Destinatario -->
-      <h4>📍 Dirección del Destinatario</h4>
+      <h4> Dirección del Destinatario</h4>
       <div formGroupName="direccion_destinatario" class="form-grid">
         <div class="form-group">
           <label for="destinatario-departamento">Departamento *</label>
@@ -210,7 +210,7 @@
 
     <!-- Sección Información del Envío -->
     <div class="form-section">
-      <h3>📋 Información del Envío</h3>
+      <h3> Información del Envío</h3>
       
       <div formGroupName="guia" class="form-grid">
         <div class="form-group">
@@ -313,7 +313,7 @@
         class="btn btn-secondary"
         (click)="resetForm()"
         [disabled]="isSubmitting">
-        🔄 Limpiar Formulario
+         Limpiar Formulario
       </button>
       
       <button 
@@ -321,7 +321,7 @@
         class="btn btn-primary"
         [disabled]="!guiaForm.valid || isSubmitting">
         <span *ngIf="isSubmitting" class="spinner-small"></span>
-        {{ isSubmitting ? 'Creando...' : '📦 Crear Guía' }}
+        {{ isSubmitting ? 'Creando...' : ' Crear Guía' }}
       </button>
     </div>
   </form>

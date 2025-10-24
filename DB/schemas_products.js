@@ -1,5 +1,5 @@
 /**
- * 📦 ESQUEMAS DE PRODUCTOS Y SERVICIOS
+ *  ESQUEMAS DE PRODUCTOS Y SERVICIOS
  * Sistema de Gestión de Envíos DsEnvios
  * 
  * Este archivo define los esquemas para package_types, pricing_config,
@@ -9,7 +9,7 @@
 const { ObjectId } = require('mongodb');
 
 /**
- * 📦 ESQUEMA DE TIPOS DE PAQUETES
+ *  ESQUEMA DE TIPOS DE PAQUETES
  */
 const PackageTypeSchema = {
     validator: {
@@ -157,7 +157,7 @@ const PackageTypeSchema = {
 };
 
 /**
- * 💰 ESQUEMA DE CONFIGURACIÓN DE PRECIOS
+ *  ESQUEMA DE CONFIGURACIÓN DE PRECIOS
  */
 const PricingConfigSchema = {
     validator: {
@@ -310,7 +310,7 @@ const PricingConfigSchema = {
 };
 
 /**
- * 🚚 ESQUEMA DE TARIFAS DE ENVÍO
+ *  ESQUEMA DE TARIFAS DE ENVÍO
  */
 const ShippingRateSchema = {
     validator: {
@@ -416,7 +416,7 @@ const ShippingRateSchema = {
 };
 
 /**
- * 🔧 ESQUEMA DE TIPOS DE SERVICIO
+ *  ESQUEMA DE TIPOS DE SERVICIO
  */
 const ServiceTypeSchema = {
     validator: {

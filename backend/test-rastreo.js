@@ -13,9 +13,9 @@ async function testRastreo() {
             'SELECT numero_guia, id_estado, fecha_creacion FROM guias_envio LIMIT 5'
         );
         
-        console.log('📦 Guías disponibles en la base de datos:');
+        console.log(' Guías disponibles en la base de datos:');
         if (guias.length === 0) {
-            console.log('   ⚠️ No hay guías registradas');
+            console.log('    No hay guías registradas');
         } else {
             guias.forEach(g => {
                 console.log(`   - ${g.numero_guia} (Estado ID: ${g.id_estado})`);
@@ -27,46 +27,46 @@ async function testRastreo() {
         if (guias.length > 0) {
             // Probar rastreo con la primera guía
             const numeroGuia = guias[0].numero_guia;
-            console.log(`\n🔍 Rastreando guía: ${numeroGuia}\n`);
+            console.log(`\n Rastreando guía: ${numeroGuia}\n`);
 
             const response = await axios.get(`http://localhost:3005/api/rastreo/${numeroGuia}`);
 
             if (response.data.success) {
                 const { guia, progreso, historial } = response.data.data;
 
-                console.log('✅ Rastreo exitoso!\n');
+                console.log(' Rastreo exitoso!\n');
                 
-                console.log('📋 Información de la Guía:');
+                console.log(' Información de la Guía:');
                 console.log(`   Número: ${guia.numero_guia}`);
                 console.log(`   Tipo: ${guia.tipo_envio}`);
                 console.log(`   Estado: ${guia.estado_actual.nombre}`);
                 console.log(`   Peso: ${guia.peso} kg`);
                 console.log(`   Costo: Q${guia.costo_total}`);
                 
-                console.log('\n📊 Progreso:');
+                console.log('\n Progreso:');
                 console.log(`   Porcentaje: ${progreso.porcentaje}%`);
                 console.log(`   Paso actual: ${progreso.paso_actual}/6`);
                 console.log(`   Completado: ${progreso.completado ? 'Sí' : 'No'}`);
                 
-                console.log('\n🚚 Timeline:');
+                console.log('\n Timeline:');
                 progreso.timeline.forEach(estado => {
-                    const status = estado.completado ? '✅' : '⬜';
+                    const status = estado.completado ? '' : '';
                     const current = estado.activo ? ' ← ACTUAL' : '';
                     console.log(`   ${status} ${estado.icono} ${estado.nombre}${current}`);
                 });
 
                 if (historial.length > 0) {
-                    console.log('\n📝 Historial:');
+                    console.log('\n Historial:');
                     historial.forEach((h, i) => {
                         console.log(`   ${i + 1}. [${new Date(h.fecha).toLocaleString('es-GT')}]`);
                         console.log(`      ${h.estado}: ${h.observaciones || h.descripcion}`);
-                        if (h.ubicacion) console.log(`      📍 ${h.ubicacion}`);
+                        if (h.ubicacion) console.log(`       ${h.ubicacion}`);
                     });
                 } else {
-                    console.log('\n📝 No hay historial de tracking');
+                    console.log('\n No hay historial de tracking');
                 }
 
-                console.log('\n👥 Personas:');
+                console.log('\n Personas:');
                 console.log(`   Remitente: ${guia.remitente.nombre}`);
                 console.log(`   Destinatario: ${guia.destinatario.nombre}`);
 
@@ -79,14 +79,14 @@ async function testRastreo() {
             await axios.get('http://localhost:3005/api/rastreo/GUIA-NO-EXISTE');
         } catch (error) {
             if (error.response && error.response.status === 404) {
-                console.log('✅ Error 404 manejado correctamente:', error.response.data.error);
+                console.log(' Error 404 manejado correctamente:', error.response.data.error);
             }
         }
 
-        console.log('\n🎉 Pruebas completadas!');
+        console.log('\n Pruebas completadas!');
 
     } catch (error) {
-        console.error('❌ Error:', error.message);
+        console.error(' Error:', error.message);
         if (error.response) {
             console.error('   Respuesta:', error.response.data);
         }

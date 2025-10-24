@@ -19,9 +19,9 @@ async function testCotizacion() {
             }]
         };
 
-        console.log('📦 Test 1: Sobre pequeño en misma ciudad (Guatemala → Guatemala)');
+        console.log(' Test 1: Sobre pequeño en misma ciudad (Guatemala → Guatemala)');
         const response1 = await axios.post('http://localhost:3005/api/cotizar', test1);
-        console.log('✅ Respuesta:', JSON.stringify(response1.data, null, 2));
+        console.log(' Respuesta:', JSON.stringify(response1.data, null, 2));
         console.log(`Total: Q${response1.data.cotizacion.total_general}\n`);
 
         // Test 2: Dos paquetes grandes, diferentes ciudades
@@ -51,14 +51,14 @@ async function testCotizacion() {
             servicio: 'express'
         };
 
-        console.log('📦 Test 2: Dos cajas grandes entre ciudades (Guatemala → Quetzaltenango)');
+        console.log(' Test 2: Dos cajas grandes entre ciudades (Guatemala → Quetzaltenango)');
         const response2 = await axios.post('http://localhost:3005/api/cotizar', test2);
-        console.log('✅ Respuesta:', JSON.stringify(response2.data, null, 2));
+        console.log(' Respuesta:', JSON.stringify(response2.data, null, 2));
         console.log(`Total: Q${response2.data.cotizacion.total_general}`);
         console.log(`Tiempo: ${response2.data.cotizacion.tiempo_entrega}\n`);
 
         // Verificar estructura esperada por el frontend
-        console.log('🔍 Verificando estructura de respuesta...');
+        console.log(' Verificando estructura de respuesta...');
         const cotizacion = response2.data.cotizacion;
         
         const checks = [
@@ -74,12 +74,12 @@ async function testCotizacion() {
 
         console.log('\nCampos verificados:');
         checks.forEach(check => {
-            const status = check.valor !== undefined && check.valor !== false ? '✅' : '❌';
+            const status = check.valor !== undefined && check.valor !== false ? '' : '';
             console.log(`${status} ${check.campo}: ${check.valor}`);
         });
 
     } catch (error) {
-        console.error('❌ Error en la prueba:', error.response?.data || error.message);
+        console.error(' Error en la prueba:', error.response?.data || error.message);
     }
 }
 

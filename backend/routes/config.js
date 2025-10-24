@@ -1,5 +1,5 @@
 /**
- * 🏢 RUTAS DE CONFIGURACIÓN
+ *  RUTAS DE CONFIGURACIÓN
  * Sistema DsEnvios - Backend
  * 
  * Endpoints para obtener datos de configuración (tipos de paquete, métodos de pago, ubicaciones)

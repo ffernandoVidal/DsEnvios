@@ -13,11 +13,11 @@ async function initDatabase() {
             port: process.env.DB_PORT || 3310
         });
 
-        console.log('✅ Conectado a MySQL');
+        console.log(' Conectado a MySQL');
 
         // Crear base de datos
         await connection.execute(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME || 'enviosdb'}\``);
-        console.log(`✅ Base de datos '${process.env.DB_NAME || 'enviosdb'}' creada`);
+        console.log(` Base de datos '${process.env.DB_NAME || 'enviosdb'}' creada`);
         
         await connection.end();
 
@@ -30,10 +30,10 @@ async function initDatabase() {
             database: process.env.DB_NAME || 'enviosdb'
         });
 
-        console.log('✅ Conectado a la base de datos enviosdb');
+        console.log(' Conectado a la base de datos enviosdb');
 
         // Crear tablas
-        console.log('📝 Creando tablas...');
+        console.log(' Creando tablas...');
 
         // Tabla de roles
         await connection.execute(`
@@ -46,7 +46,7 @@ async function initDatabase() {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         `);
-        console.log('✅ Tabla roles creada');
+        console.log(' Tabla roles creada');
 
         // Tabla de usuarios
         await connection.execute(`
@@ -63,7 +63,7 @@ async function initDatabase() {
                 FOREIGN KEY (id_rol) REFERENCES roles(id) ON DELETE SET NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         `);
-        console.log('✅ Tabla usuarios creada');
+        console.log(' Tabla usuarios creada');
 
         // Tabla de sucursales
         await connection.execute(`
@@ -80,7 +80,7 @@ async function initDatabase() {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         `);
-        console.log('✅ Tabla sucursales creada');
+        console.log(' Tabla sucursales creada');
 
         // Tabla de bodegas
         await connection.execute(`
@@ -96,7 +96,7 @@ async function initDatabase() {
                 FOREIGN KEY (id_sucursal) REFERENCES sucursales(id) ON DELETE SET NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         `);
-        console.log('✅ Tabla bodegas creada');
+        console.log(' Tabla bodegas creada');
 
         // Tabla de personas
         await connection.execute(`
@@ -112,7 +112,7 @@ async function initDatabase() {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         `);
-        console.log('✅ Tabla personas creada');
+        console.log(' Tabla personas creada');
 
         // Tabla de estados de envío
         await connection.execute(`
@@ -125,7 +125,7 @@ async function initDatabase() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         `);
-        console.log('✅ Tabla estados_envio creada');
+        console.log(' Tabla estados_envio creada');
 
         // Tabla de guías de envío
         await connection.execute(`
@@ -159,7 +159,7 @@ async function initDatabase() {
                 FOREIGN KEY (id_usuario_creador) REFERENCES usuarios(id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         `);
-        console.log('✅ Tabla guias_envio creada');
+        console.log(' Tabla guias_envio creada');
 
         // Tabla de tracking
         await connection.execute(`
@@ -177,10 +177,10 @@ async function initDatabase() {
                 FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         `);
-        console.log('✅ Tabla tracking creada');
+        console.log(' Tabla tracking creada');
 
         // Insertar datos iniciales
-        console.log('📝 Insertando datos iniciales...');
+        console.log(' Insertando datos iniciales...');
 
         // Roles
         await connection.execute(`
@@ -189,7 +189,7 @@ async function initDatabase() {
             ('operator', 'Operador de bodega'),
             ('user', 'Usuario cliente')
         `);
-        console.log('✅ Roles insertados');
+        console.log(' Roles insertados');
 
         // Estados de envío
         await connection.execute(`
@@ -203,7 +203,7 @@ async function initDatabase() {
             ('DEVUELTO', 'Devuelto al remitente', '#F44336'),
             ('CANCELADO', 'Envío cancelado', '#607D8B')
         `);
-        console.log('✅ Estados de envío insertados');
+        console.log(' Estados de envío insertados');
 
         // Usuario administrador por defecto (contraseña: admin123)
         const bcrypt = require('bcrypt');
@@ -213,7 +213,7 @@ async function initDatabase() {
             INSERT IGNORE INTO usuarios (correo, contrasena, nombre, id_rol, activo) VALUES
             ('admin@envios.com', ?, 'Administrador', 1, TRUE)
         `, [hashedPassword]);
-        console.log('✅ Usuario administrador creado (admin@envios.com / admin123)');
+        console.log(' Usuario administrador creado (admin@envios.com / admin123)');
 
         // Sucursales de ejemplo
         await connection.execute(`
@@ -222,7 +222,7 @@ async function initDatabase() {
             ('Sucursal Quetzaltenango', 'XELA', 'Zona 3, Quetzaltenango', 'Quetzaltenango', 'Quetzaltenango'),
             ('Sucursal Zacapa', 'ZAC', 'Barrio El Centro', 'Zacapa', 'Zacapa')
         `);
-        console.log('✅ Sucursales de ejemplo insertadas');
+        console.log(' Sucursales de ejemplo insertadas');
 
         // Bodegas de ejemplo
         await connection.execute(`
@@ -232,16 +232,16 @@ async function initDatabase() {
             ('Bodega Principal Xela', 'BP-XELA', 'Bodega Zona 3, Quetzaltenango', 2),
             ('Bodega Principal Zacapa', 'BP-ZAC', 'Bodega Centro, Zacapa', 3)
         `);
-        console.log('✅ Bodegas de ejemplo insertadas');
+        console.log(' Bodegas de ejemplo insertadas');
 
-        console.log('\n🎉 Base de datos inicializada correctamente');
-        console.log('📊 Resumen:');
+        console.log('\n Base de datos inicializada correctamente');
+        console.log(' Resumen:');
         console.log('   - Base de datos: enviosdb');
         console.log('   - Tablas creadas: 8');
         console.log('   - Usuario admin: admin@envios.com / admin123');
 
     } catch (error) {
-        console.error('❌ Error:', error.message);
+        console.error(' Error:', error.message);
         console.error(error);
         process.exit(1);
     } finally {

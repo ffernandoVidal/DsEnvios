@@ -1,5 +1,5 @@
 /**
- * ⚙️ ESQUEMAS OPERACIONALES
+ *  ESQUEMAS OPERACIONALES
  * Sistema de Gestión de Envíos DsEnvios
  * 
  * Este archivo define los esquemas para payment_methods, transactions,
@@ -9,7 +9,7 @@
 const { ObjectId } = require('mongodb');
 
 /**
- * 💳 ESQUEMA DE MÉTODOS DE PAGO
+ *  ESQUEMA DE MÉTODOS DE PAGO
  */
 const PaymentMethodSchema = {
     validator: {
@@ -86,7 +86,7 @@ const PaymentMethodSchema = {
 };
 
 /**
- * 💰 ESQUEMA DE TRANSACCIONES
+ *  ESQUEMA DE TRANSACCIONES
  */
 const TransactionSchema = {
     validator: {
@@ -185,7 +185,7 @@ const TransactionSchema = {
 };
 
 /**
- * 📧 ESQUEMA DE NOTIFICACIONES
+ *  ESQUEMA DE NOTIFICACIONES
  */
 const NotificationSchema = {
     validator: {
@@ -291,7 +291,7 @@ const NotificationSchema = {
 };
 
 /**
- * 📊 ESQUEMA DE LOGS DEL SISTEMA
+ *  ESQUEMA DE LOGS DEL SISTEMA
  */
 const SystemLogSchema = {
     validator: {

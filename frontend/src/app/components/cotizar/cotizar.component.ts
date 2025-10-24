@@ -249,7 +249,7 @@ export class CotizarComponent implements OnInit, OnDestroy {
     {
       id: 1,
       nombre: 'Pequeño',
-      icono: '📦',
+      icono: '',
       limiteSize: '28cm',
       limitePeso: '10lbs',
       descripcion: 'Ideal para documentos y objetos pequeños',
@@ -258,7 +258,7 @@ export class CotizarComponent implements OnInit, OnDestroy {
     {
       id: 2,
       nombre: 'Mediano',
-      icono: '📦',
+      icono: '',
       limiteSize: '36cm',
       limitePeso: '30lbs',
       descripcion: 'Perfect para ropa y objetos medianos',
@@ -267,7 +267,7 @@ export class CotizarComponent implements OnInit, OnDestroy {
     {
       id: 3,
       nombre: 'Grande',
-      icono: '📦',
+      icono: '',
       limiteSize: '47cm',
       limitePeso: '40lbs',
       descripcion: 'Para electrodomésticos pequeños y más',
@@ -276,7 +276,7 @@ export class CotizarComponent implements OnInit, OnDestroy {
     {
       id: 4,
       nombre: 'Extra Grande',
-      icono: '📦',
+      icono: '',
       limiteSize: '51cm',
       limitePeso: '59lbs',
       descripcion: 'Para objetos grandes y pesados',
@@ -285,7 +285,7 @@ export class CotizarComponent implements OnInit, OnDestroy {
     {
       id: 5,
       nombre: 'Sobredimensionado',
-      icono: '📦',
+      icono: '',
       limiteSize: 'Más de 51cm',
       limitePeso: 'Más de 60lbs',
       descripcion: 'Para envíos especiales y muy pesados',

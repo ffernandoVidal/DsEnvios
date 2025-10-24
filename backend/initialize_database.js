@@ -279,17 +279,17 @@ class DatabaseInitializer {
      */
     async connect() {
         try {
-            console.log(`📡 Conectando a MongoDB (${environment})...`);
-            console.log(`🔗 URI: ${dbConfig.uri}`);
-            console.log(`🗄️  Base de datos: ${dbConfig.dbName}`);
+            console.log(` Conectando a MongoDB (${environment})...`);
+            console.log(` URI: ${dbConfig.uri}`);
+            console.log(`  Base de datos: ${dbConfig.dbName}`);
             
             this.client = new MongoClient(dbConfig.uri);
             await this.client.connect();
             this.db = this.client.db(dbConfig.dbName);
             
-            console.log('✅ Conexión exitosa a MongoDB');
+            console.log(' Conexión exitosa a MongoDB');
         } catch (error) {
-            console.error('❌ Error al conectar a MongoDB:', error.message);
+            console.error(' Error al conectar a MongoDB:', error.message);
             throw error;
         }
     }
@@ -298,7 +298,7 @@ class DatabaseInitializer {
      * Crear esquemas de validación para todas las colecciones
      */
     async createSchemas() {
-        console.log('\n📋 Creando esquemas de validación...');
+        console.log('\n Creando esquemas de validación...');
         
         for (const [collectionName, schema] of Object.entries(SCHEMAS)) {
             try {
@@ -306,7 +306,7 @@ class DatabaseInitializer {
                 const collections = await this.db.listCollections({ name: collectionName }).toArray();
                 
                 if (collections.length > 0) {
-                    console.log(`⚠️  Colección '${collectionName}' ya existe - actualizando validador`);
+                    console.log(`  Colección '${collectionName}' ya existe - actualizando validador`);
                     
                     // Actualizar el validador
                     await this.db.command({
@@ -314,7 +314,7 @@ class DatabaseInitializer {
                         validator: { $jsonSchema: schema }
                     });
                 } else {
-                    console.log(`🆕 Creando colección '${collectionName}'`);
+                    console.log(` Creando colección '${collectionName}'`);
                     
                     // Crear la colección con validador
                     await this.db.createCollection(collectionName, {
@@ -322,9 +322,9 @@ class DatabaseInitializer {
                     });
                 }
                 
-                console.log(`✅ Esquema de '${collectionName}' configurado`);
+                console.log(` Esquema de '${collectionName}' configurado`);
             } catch (error) {
-                console.error(`❌ Error al crear esquema de '${collectionName}':`, error.message);
+                console.error(` Error al crear esquema de '${collectionName}':`, error.message);
                 throw error;
             }
         }
@@ -334,7 +334,7 @@ class DatabaseInitializer {
      * Crear índices para optimización
      */
     async createIndexes() {
-        console.log('\n🔍 Creando índices de optimización...');
+        console.log('\n Creando índices de optimización...');
         
         for (const [collectionName, indexes] of Object.entries(INDEXES)) {
             try {
@@ -342,14 +342,14 @@ class DatabaseInitializer {
                 
                 for (const indexSpec of indexes) {
                     const indexName = Object.keys(indexSpec.key).join('_');
-                    console.log(`📝 Creando índice '${indexName}' en '${collectionName}'`);
+                    console.log(` Creando índice '${indexName}' en '${collectionName}'`);
                     
                     await collection.createIndex(indexSpec.key, indexSpec);
                 }
                 
-                console.log(`✅ Índices de '${collectionName}' creados`);
+                console.log(` Índices de '${collectionName}' creados`);
             } catch (error) {
-                console.error(`❌ Error al crear índices de '${collectionName}':`, error.message);
+                console.error(` Error al crear índices de '${collectionName}':`, error.message);
                 throw error;
             }
         }
@@ -359,7 +359,7 @@ class DatabaseInitializer {
      * Insertar datos iniciales
      */
     async insertInitialData() {
-        console.log('\n📊 Insertando datos iniciales...');
+        console.log('\n Insertando datos iniciales...');
         
         for (const [collectionName, data] of Object.entries(INITIAL_DATA)) {
             try {
@@ -369,16 +369,16 @@ class DatabaseInitializer {
                 const existingCount = await collection.countDocuments();
                 
                 if (existingCount > 0) {
-                    console.log(`⚠️  La colección '${collectionName}' ya tiene ${existingCount} documentos - omitiendo inserción`);
+                    console.log(`  La colección '${collectionName}' ya tiene ${existingCount} documentos - omitiendo inserción`);
                     continue;
                 }
                 
-                console.log(`📥 Insertando ${data.length} registros en '${collectionName}'`);
+                console.log(` Insertando ${data.length} registros en '${collectionName}'`);
                 const result = await collection.insertMany(data);
                 
-                console.log(`✅ Insertados ${result.insertedCount} documentos en '${collectionName}'`);
+                console.log(` Insertados ${result.insertedCount} documentos en '${collectionName}'`);
             } catch (error) {
-                console.error(`❌ Error al insertar datos en '${collectionName}':`, error.message);
+                console.error(` Error al insertar datos en '${collectionName}':`, error.message);
                 throw error;
             }
         }
@@ -388,7 +388,7 @@ class DatabaseInitializer {
      * Verificar integridad de la base de datos
      */
     async verifyDatabase() {
-        console.log('\n🔍 Verificando integridad de la base de datos...');
+        console.log('\n Verificando integridad de la base de datos...');
         
         const summary = {};
         
@@ -398,14 +398,14 @@ class DatabaseInitializer {
                 const count = await collection.countDocuments();
                 summary[collectionName] = count;
                 
-                console.log(`📊 ${collectionName}: ${count} documentos`);
+                console.log(` ${collectionName}: ${count} documentos`);
             } catch (error) {
-                console.error(`❌ Error al verificar '${collectionName}':`, error.message);
+                console.error(` Error al verificar '${collectionName}':`, error.message);
                 summary[collectionName] = 'ERROR';
             }
         }
         
-        console.log('\n📈 Resumen de la base de datos:');
+        console.log('\n Resumen de la base de datos:');
         console.table(summary);
         
         return summary;
@@ -417,7 +417,7 @@ class DatabaseInitializer {
     async close() {
         if (this.client) {
             await this.client.close();
-            console.log('🔐 Conexión cerrada');
+            console.log(' Conexión cerrada');
         }
     }
 
@@ -426,7 +426,7 @@ class DatabaseInitializer {
      */
     async initialize() {
         try {
-            console.log('🚀 INICIANDO CONFIGURACIÓN DE BASE DE DATOS DSENVIOS\n');
+            console.log(' INICIANDO CONFIGURACIÓN DE BASE DE DATOS DSENVIOS\n');
             console.log('=' .repeat(60));
             
             await this.connect();
@@ -436,13 +436,13 @@ class DatabaseInitializer {
             await this.verifyDatabase();
             
             console.log('\n' + '=' .repeat(60));
-            console.log('🎉 ¡BASE DE DATOS INICIALIZADA EXITOSAMENTE!');
+            console.log(' ¡BASE DE DATOS INICIALIZADA EXITOSAMENTE!');
             console.log('=' .repeat(60));
             
             return true;
         } catch (error) {
-            console.error('\n💥 ERROR DURANTE LA INICIALIZACIÓN:', error.message);
-            console.error('📋 Stack trace:', error.stack);
+            console.error('\n ERROR DURANTE LA INICIALIZACIÓN:', error.message);
+            console.error(' Stack trace:', error.stack);
             return false;
         } finally {
             await this.close();
@@ -458,10 +458,10 @@ async function main() {
     const success = await initializer.initialize();
     
     if (success) {
-        console.log('\n✅ Script completado exitosamente');
+        console.log('\n Script completado exitosamente');
         process.exit(0);
     } else {
-        console.log('\n❌ Script completado con errores');
+        console.log('\n Script completado con errores');
         process.exit(1);
     }
 }
@@ -478,7 +478,7 @@ module.exports = {
 // Ejecutar si es llamado directamente
 if (require.main === module) {
     main().catch(error => {
-        console.error('💥 Error crítico:', error);
+        console.error(' Error crítico:', error);
         process.exit(1);
     });
 }

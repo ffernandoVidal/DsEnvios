@@ -252,9 +252,9 @@ app.get('/catalogos/bodegas', authenticateToken, (req, res) => {
 
 // Iniciar servidor
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor ejecutándose en puerto ${PORT}`);
-    console.log(`📝 API disponible en http://localhost:${PORT}`);
-    console.log('✅ Servidor funcionando con datos mock (sin base de datos)');
+    console.log(` Servidor ejecutándose en puerto ${PORT}`);
+    console.log(` API disponible en http://localhost:${PORT}`);
+    console.log(' Servidor funcionando con datos mock (sin base de datos)');
 });
 
 module.exports = app;

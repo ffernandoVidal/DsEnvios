@@ -13,11 +13,11 @@ async function checkUsers() {
             database: process.env.DB_NAME || 'enviosdb'
         });
 
-        console.log('✅ Conectado a la base de datos\n');
+        console.log(' Conectado a la base de datos\n');
 
         // Verificar usuarios
         const [usuarios] = await connection.execute('SELECT id, correo, nombre, id_rol, activo FROM usuarios');
-        console.log('📋 Usuarios en la base de datos:');
+        console.log(' Usuarios en la base de datos:');
         console.log('');
         usuarios.forEach(user => {
             console.log(`   ID: ${user.id}`);
@@ -29,14 +29,14 @@ async function checkUsers() {
         });
 
         if (usuarios.length === 0) {
-            console.log('⚠️  No hay usuarios en la base de datos');
+            console.log('  No hay usuarios en la base de datos');
             console.log('   Ejecuta: node init-database.js');
         }
 
         await connection.end();
 
     } catch (error) {
-        console.error('❌ Error:', error.message);
+        console.error(' Error:', error.message);
         process.exit(1);
     }
 }

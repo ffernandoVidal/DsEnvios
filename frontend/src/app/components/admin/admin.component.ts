@@ -20,15 +20,15 @@ interface DashboardStats {
 }
 
 export interface NewShipmentForm {
-  receiverName: string;           // ✅
-  receiverEmail: string;          // ✅
-  receiverReference: 'casa' | 'trabajo' | 'gimnasio' | 'escuela';  // ✅
-  receiverDepartamento: string;   // ✅
-  receiverMunicipio: string;      // ✅
-  receiverPoblado: string;        // ✅
-  receiverPhone?: string;         // ✅
-  paymentMethodId: string;        // ✅
-  packageTypeId: string;          // ✅
+  receiverName: string;           // 
+  receiverEmail: string;          // 
+  receiverReference: 'casa' | 'trabajo' | 'gimnasio' | 'escuela';  // 
+  receiverDepartamento: string;   // 
+  receiverMunicipio: string;      // 
+  receiverPoblado: string;        // 
+  receiverPhone?: string;         // 
+  paymentMethodId: string;        // 
+  packageTypeId: string;          // 
   // ... otras propiedades
 }
 
@@ -105,13 +105,13 @@ export class AdminComponent implements OnInit, OnDestroy {
     const baseItems = [
       {
         title: 'Dashboard',
-        icon: '🏠',
+        icon: '',
         route: '/admin',
         description: 'Panel principal'
       },
       {
         title: 'Cotizar',
-        icon: '💰',
+        icon: '',
         route: '/cotizar',
         description: 'Realizar cotización'
       }
@@ -122,31 +122,31 @@ export class AdminComponent implements OnInit, OnDestroy {
         ...baseItems,
         {
           title: 'Gestionar Cotizaciones',
-          icon: '📊',
+          icon: '',
           route: '/admin/quotes',
           description: 'Ver todas las cotizaciones'
         },
         {
           title: 'Envíos',
-          icon: '📦',
+          icon: '',
           route: '/admin/shipments',
           description: 'Gestionar envíos'
         },
         {
           title: 'Usuarios',
-          icon: '👥',
+          icon: '',
           route: '/admin/users',
           description: 'Administrar usuarios'
         },
         {
           title: 'Configuración',
-          icon: '⚙️',
+          icon: '',
           route: '/admin/settings',
           description: 'Configuración del sistema'
         },
         {
           title: 'Reportes',
-          icon: '📈',
+          icon: '',
           route: '/admin/reports',
           description: 'Reportes y análisis'
         }
@@ -157,7 +157,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         ...baseItems,
         {
           title: 'Panel en Mantenimiento',
-          icon: '�',
+          icon: '',
           route: '#',
           description: 'Funcionalidad temporalmente deshabilitada'
         }
@@ -166,19 +166,19 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.menuItems = [
         {
           title: 'Mi Perfil',
-          icon: '👤',
+          icon: '',
           route: '/admin/profile',
           description: 'Información personal'
         },
         {
           title: 'Cotizar',
-          icon: '💰',
+          icon: '',
           route: '/cotizar',
           description: 'Realizar cotización'
         },
         {
           title: 'Mis Envíos',
-          icon: '📦',
+          icon: '',
           route: '/admin/my-shipments',
           description: 'Mis envíos'
         }
@@ -240,7 +240,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   navigateToNewShipment(): void {
-    console.log('🚚 Navegando a cotizar envío...');
+    console.log(' Navegando a cotizar envío...');
     this.router.navigate(['/cotizar']);
   }
 
@@ -249,7 +249,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     
     // Verificar si es el panel deshabilitado
     if (item.route === '#') {
-      alert(`⚠️ ${item.title}\n\n${item.description}\n\nEsta funcionalidad será habilitada próximamente.`);
+      alert(` ${item.title}\n\n${item.description}\n\nEsta funcionalidad será habilitada próximamente.`);
       return;
     }
     
@@ -358,13 +358,13 @@ export class AdminComponent implements OnInit, OnDestroy {
       next: (response) => {
         if (response.success && response.data) {
           this.queryResults = response.data.rows;
-          alert(`✅ Consulta ejecutada exitosamente. ${response.data.count} registros encontrados.`);
+          alert(` Consulta ejecutada exitosamente. ${response.data.count} registros encontrados.`);
         }
         this.loadingDB = false;
       },
       error: (error) => {
         console.error('Error al ejecutar consulta:', error);
-        alert(`❌ Error: ${error.error?.error || error.message}`);
+        alert(` Error: ${error.error?.error || error.message}`);
         this.loadingDB = false;
       }
     });

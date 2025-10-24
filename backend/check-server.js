@@ -11,7 +11,7 @@ function checkServer() {
     };
 
     const req = http.request(options, (res) => {
-        console.log('✅ Servidor respondió');
+        console.log(' Servidor respondió');
         console.log('   Status:', res.statusCode);
         
         let data = '';
@@ -26,20 +26,20 @@ function checkServer() {
 
     req.on('error', (error) => {
         if (error.code === 'ECONNREFUSED') {
-            console.log('❌ El servidor no está ejecutándose en el puerto 3005');
+            console.log(' El servidor no está ejecutándose en el puerto 3005');
             console.log('   Inicia el servidor con: node server-mysql.js');
         } else {
-            console.log('❌ Error:', error.message);
+            console.log(' Error:', error.message);
         }
     });
 
     req.on('timeout', () => {
-        console.log('⏱️  Timeout - El servidor no respondió a tiempo');
+        console.log('⏱  Timeout - El servidor no respondió a tiempo');
         req.destroy();
     });
 
     req.end();
 }
 
-console.log('🔍 Verificando servidor en http://localhost:3005...\n');
+console.log(' Verificando servidor en http://localhost:3005...\n');
 checkServer();

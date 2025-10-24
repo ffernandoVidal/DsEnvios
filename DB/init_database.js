@@ -1,5 +1,5 @@
 /**
- * 🚀 INICIALIZADOR DE BASE DE DATOS
+ *  INICIALIZADOR DE BASE DE DATOS
  * Sistema de Gestión de Envíos DsEnvios
  * 
  * Este archivo inicializa toda la estructura de base de datos,
@@ -39,7 +39,7 @@ const {
 } = require('./schemas_operational');
 
 /**
- * 🏗️ CONFIGURACIÓN DE COLECCIONES Y ESQUEMAS
+ *  CONFIGURACIÓN DE COLECCIONES Y ESQUEMAS
  */
 const COLLECTIONS_CONFIG = {
     // Colecciones principales
@@ -69,7 +69,7 @@ const COLLECTIONS_CONFIG = {
 };
 
 /**
- * 📊 DATOS INICIALES
+ *  DATOS INICIALES
  */
 const INITIAL_DATA = {
     // Departamentos de Guatemala
@@ -126,26 +126,26 @@ const INITIAL_DATA = {
 };
 
 /**
- * 🔧 FUNCIÓN PRINCIPAL DE INICIALIZACIÓN
+ *  FUNCIÓN PRINCIPAL DE INICIALIZACIÓN
  */
 async function initializeDatabase() {
-    console.log('🚀 Iniciando configuración de base de datos DsEnvios...\n');
+    console.log(' Iniciando configuración de base de datos DsEnvios...\n');
     
     try {
         // Conectar a la base de datos
-        console.log('📡 Conectando a MongoDB...');
+        console.log(' Conectando a MongoDB...');
         const { db, client } = await connectToDatabase();
-        console.log('✅ Conexión exitosa a MongoDB\n');
+        console.log(' Conexión exitosa a MongoDB\n');
         
         // Crear colecciones con esquemas de validación
-        console.log('🏗️ Creando colecciones y esquemas de validación...');
+        console.log(' Creando colecciones y esquemas de validación...');
         for (const [collectionName, config] of Object.entries(COLLECTIONS_CONFIG)) {
             try {
                 await db.createCollection(collectionName, config.schema);
-                console.log(`   ✅ Colección '${collectionName}' creada`);
+                console.log(`    Colección '${collectionName}' creada`);
             } catch (error) {
                 if (error.code === 48) { // Collection already exists
-                    console.log(`   ⚠️  Colección '${collectionName}' ya existe`);
+                    console.log(`     Colección '${collectionName}' ya existe`);
                 } else {
                     throw error;
                 }
@@ -154,12 +154,12 @@ async function initializeDatabase() {
         console.log('');
         
         // Crear índices optimizados
-        console.log('📊 Creando índices optimizados...');
+        console.log(' Creando índices optimizados...');
         await createOptimizedIndexes(db);
-        console.log('✅ Índices creados exitosamente\n');
+        console.log(' Índices creados exitosamente\n');
         
         // Insertar datos iniciales
-        console.log('📝 Insertando datos iniciales...');
+        console.log(' Insertando datos iniciales...');
         for (const [collectionName, data] of Object.entries(INITIAL_DATA)) {
             const collection = db.collection(collectionName);
             const existingCount = await collection.countDocuments();
@@ -170,38 +170,38 @@ async function initializeDatabase() {
                     created_at: new Date(),
                     updated_at: new Date()
                 })));
-                console.log(`   ✅ ${data.length} registros insertados en '${collectionName}'`);
+                console.log(`    ${data.length} registros insertados en '${collectionName}'`);
             } else {
-                console.log(`   ⚠️  Colección '${collectionName}' ya contiene ${existingCount} registros`);
+                console.log(`     Colección '${collectionName}' ya contiene ${existingCount} registros`);
             }
         }
         console.log('');
         
         // Verificar estado de la base de datos
-        console.log('🔍 Verificando estado de la base de datos...');
+        console.log(' Verificando estado de la base de datos...');
         const stats = await db.stats();
-        console.log(`   📊 Tamaño de BD: ${(stats.dataSize / 1024 / 1024).toFixed(2)} MB`);
-        console.log(`   📁 Colecciones: ${stats.collections}`);
-        console.log(`   📄 Documentos: ${stats.objects}`);
-        console.log(`   📊 Índices: ${stats.indexes}`);
+        console.log(`    Tamaño de BD: ${(stats.dataSize / 1024 / 1024).toFixed(2)} MB`);
+        console.log(`    Colecciones: ${stats.collections}`);
+        console.log(`    Documentos: ${stats.objects}`);
+        console.log(`    Índices: ${stats.indexes}`);
         console.log('');
         
-        console.log('🎉 ¡Inicialización de base de datos completada exitosamente!');
-        console.log('💡 La base de datos DsEnvios está lista para uso en producción.\n');
+        console.log(' ¡Inicialización de base de datos completada exitosamente!');
+        console.log(' La base de datos DsEnvios está lista para uso en producción.\n');
         
         return { success: true, db, client };
         
     } catch (error) {
-        console.error('❌ Error durante la inicialización:', error.message);
+        console.error(' Error durante la inicialización:', error.message);
         throw error;
     }
 }
 
 /**
- * 🔄 FUNCIÓN DE RESET (SOLO PARA DESARROLLO)
+ *  FUNCIÓN DE RESET (SOLO PARA DESARROLLO)
  */
 async function resetDatabase() {
-    console.log('⚠️  ADVERTENCIA: Iniciando reset completo de base de datos...\n');
+    console.log('  ADVERTENCIA: Iniciando reset completo de base de datos...\n');
     
     try {
         const { db, client } = await connectToDatabase();
@@ -212,32 +212,32 @@ async function resetDatabase() {
         // Eliminar todas las colecciones
         for (const collection of collections) {
             await db.dropCollection(collection.name);
-            console.log(`   🗑️  Colección '${collection.name}' eliminada`);
+            console.log(`     Colección '${collection.name}' eliminada`);
         }
         
-        console.log('\n🔄 Reinicializando base de datos...\n');
+        console.log('\n Reinicializando base de datos...\n');
         
         // Reinicializar
         return await initializeDatabase();
         
     } catch (error) {
-        console.error('❌ Error durante el reset:', error.message);
+        console.error(' Error durante el reset:', error.message);
         throw error;
     }
 }
 
 /**
- * 📊 FUNCIÓN DE VERIFICACIÓN DE SALUD
+ *  FUNCIÓN DE VERIFICACIÓN DE SALUD
  */
 async function checkDatabaseHealth() {
     try {
         const { db, client } = await connectToDatabase();
         
-        console.log('🔍 Verificando salud de la base de datos...\n');
+        console.log(' Verificando salud de la base de datos...\n');
         
         // Verificar conexión
         await db.admin().ping();
-        console.log('✅ Conexión a MongoDB: OK');
+        console.log(' Conexión a MongoDB: OK');
         
         // Verificar colecciones
         const collections = await db.listCollections().toArray();
@@ -247,23 +247,23 @@ async function checkDatabaseHealth() {
         );
         
         if (missingCollections.length === 0) {
-            console.log(`✅ Colecciones (${collections.length}): OK`);
+            console.log(` Colecciones (${collections.length}): OK`);
         } else {
-            console.log(`⚠️  Colecciones faltantes: ${missingCollections.join(', ')}`);
+            console.log(`  Colecciones faltantes: ${missingCollections.join(', ')}`);
         }
         
         // Verificar datos básicos
         for (const collectionName of Object.keys(INITIAL_DATA)) {
             const count = await db.collection(collectionName).countDocuments();
-            console.log(`   📊 ${collectionName}: ${count} documentos`);
+            console.log(`    ${collectionName}: ${count} documentos`);
         }
         
-        console.log('\n✅ Verificación de salud completada');
+        console.log('\n Verificación de salud completada');
         
         return { healthy: true, collections: collections.length };
         
     } catch (error) {
-        console.error('❌ Error en verificación de salud:', error.message);
+        console.error(' Error en verificación de salud:', error.message);
         return { healthy: false, error: error.message };
     }
 }

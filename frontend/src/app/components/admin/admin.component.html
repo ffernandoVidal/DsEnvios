@@ -4,7 +4,7 @@
   <header class="admin-header">
     <div class="header-left">
       <h1 class="admin-title">
-        <span class="admin-icon">⚡</span>
+        <span class="admin-icon"></span>
         Panel de Administración
       </h1>
     </div>
@@ -45,24 +45,24 @@
           Bienvenido al panel de administración de EnviosDS
         </p>
         <div class="current-time">
-          <span class="time-icon">🕐</span>
+          <span class="time-icon"></span>
           {{ currentTime | date:'dd/MM/yyyy HH:mm:ss' }}
         </div>
       </div>
       <div class="welcome-graphic">
-        <div class="graphic-icon">📊</div>
+        <div class="graphic-icon"></div>
       </div>
     </section>
 
     <!-- Quick Actions -->
     <section class="quick-actions-section">
       <h3 class="section-title">
-        <span class="title-icon">⚡</span>
+        <span class="title-icon"></span>
         Acciones Rápidas
       </h3>
       <div class="quick-actions-grid">
         <button class="quick-action-btn primary" (click)="navigateToNewShipment()">
-          <div class="action-icon">📋</div>
+          <div class="action-icon"></div>
           <div class="action-content">
             <div class="action-title">Nuevo Envío</div>
             <div class="action-description">Crear un envío completo</div>
@@ -70,7 +70,7 @@
         </button>
         
         <button class="quick-action-btn secondary" (click)="navigateTo('/cotizar')">
-          <div class="action-icon">💰</div>
+          <div class="action-icon"></div>
           <div class="action-content">
             <div class="action-title">Cotizar</div>
             <div class="action-description">Generar cotización rápida</div>
@@ -78,7 +78,7 @@
         </button>
         
         <button class="quick-action-btn tertiary" (click)="navigateTo('/rastreo')">
-          <div class="action-icon">📍</div>
+          <div class="action-icon"></div>
           <div class="action-content">
             <div class="action-title">Rastrear</div>
             <div class="action-description">Buscar envío existente</div>
@@ -92,7 +92,7 @@
       <div class="stats-grid">
         
         <div class="stat-card total">
-          <div class="stat-icon">💰</div>
+          <div class="stat-icon"></div>
           <div class="stat-content">
             <div class="stat-number">{{ stats.totalQuotes }}</div>
             <div class="stat-label">Cotizaciones</div>
@@ -100,7 +100,7 @@
         </div>
         
         <div class="stat-card shipments">
-          <div class="stat-icon">📦</div>
+          <div class="stat-icon"></div>
           <div class="stat-content">
             <div class="stat-number">{{ stats.totalShipments }}</div>
             <div class="stat-label">Envíos Totales</div>
@@ -116,7 +116,7 @@
         </div>
         
         <div class="stat-card completed">
-          <div class="stat-icon">✅</div>
+          <div class="stat-icon"></div>
           <div class="stat-content">
             <div class="stat-number">{{ stats.completedShipments }}</div>
             <div class="stat-label">Completados</div>
@@ -161,34 +161,34 @@
     <!-- Quick Actions -->
     <section class="actions-section" *ngIf="currentUser?.role === 'admin'">
       <h3 class="section-title">
-        <span class="title-icon">⚡</span>
+        <span class="title-icon"></span>
         Acciones Rápidas
       </h3>
       
       <div class="actions-grid">
         
         <button class="action-btn primary" (click)="navigateTo('/cotizar')">
-          <span class="action-icon">💰</span>
+          <span class="action-icon"></span>
           <span class="action-text">Cotizar</span>
         </button>
         
         <button class="action-btn database" (click)="toggleDatabasePanel()">
-          <span class="action-icon">🗄️</span>
+          <span class="action-icon"></span>
           <span class="action-text">Base de Datos</span>
         </button>
         
         <button class="action-btn secondary">
-          <span class="action-icon">👤</span>
+          <span class="action-icon"></span>
           <span class="action-text">Crear Usuario</span>
         </button>
         
         <button class="action-btn info">
-          <span class="action-icon">📊</span>
+          <span class="action-icon"></span>
           <span class="action-text">Ver Reportes</span>
         </button>
         
         <button class="action-btn warning">
-          <span class="action-icon">⚙️</span>
+          <span class="action-icon"></span>
           <span class="action-text">Configuración</span>
         </button>
         
@@ -199,17 +199,17 @@
     <section class="database-section" *ngIf="showDatabasePanel && currentUser?.role === 'admin'">
       <div class="database-header">
         <h3 class="section-title">
-          <span class="title-icon">🗄️</span>
+          <span class="title-icon"></span>
           Gestión de Base de Datos
         </h3>
         <div class="database-actions">
           <button class="db-btn refresh" (click)="refreshDatabase()" [disabled]="loadingDB">
-            <span *ngIf="!loadingDB">🔄</span>
-            <span *ngIf="loadingDB" class="spinner">⟳</span>
+            <span *ngIf="!loadingDB"></span>
+            <span *ngIf="loadingDB" class="spinner"></span>
             Actualizar
           </button>
           <button class="db-btn close" (click)="toggleDatabasePanel()">
-            ✖ Cerrar
+             Cerrar
           </button>
         </div>
       </div>
@@ -220,7 +220,7 @@
           <div class="status-item">
             <div class="status-label">Estado</div>
             <div class="status-value connected">
-              <span class="status-indicator">●</span>
+              <span class="status-indicator"></span>
               {{ dbStatus.connected ? 'Conectado' : 'Desconectado' }}
             </div>
           </div>
@@ -250,7 +250,7 @@
               [class.active]="selectedTable?.name === table.name"
               (click)="selectTable(table)"
             >
-              <div class="table-icon">📋</div>
+              <div class="table-icon"></div>
               <div class="table-info">
                 <div class="table-name">{{ table.name }}</div>
                 <div class="table-count">{{ table.rowCount }} registros</div>
@@ -262,7 +262,7 @@
         <!-- Table Details -->
         <div class="db-main">
           <div *ngIf="!selectedTable && queryResults.length === 0" class="db-placeholder">
-            <div class="placeholder-icon">🗂️</div>
+            <div class="placeholder-icon"></div>
             <div class="placeholder-text">Selecciona una tabla para ver sus datos</div>
           </div>
 
@@ -301,7 +301,7 @@
                 <div class="column-item" *ngFor="let col of selectedTable.columns">
                   <span class="col-name">{{ col.name }}</span>
                   <span class="col-type">{{ col.type }}</span>
-                  <span class="col-key" *ngIf="col.key">🔑 {{ col.key }}</span>
+                  <span class="col-key" *ngIf="col.key"> {{ col.key }}</span>
                 </div>
               </div>
             </div>
@@ -327,12 +327,12 @@
             </div>
 
             <div class="loading-state" *ngIf="loadingDB">
-              <div class="spinner-large">⟳</div>
+              <div class="spinner-large"></div>
               <p>Cargando datos...</p>
             </div>
 
             <div class="empty-state" *ngIf="!loadingDB && tableData.length === 0">
-              <div class="empty-icon">📭</div>
+              <div class="empty-icon"></div>
               <p>No hay datos en esta tabla</p>
             </div>
           </div>
@@ -372,7 +372,7 @@
       <!-- Custom Query Section -->
       <div class="query-section">
         <h4 class="query-title">
-          <span class="title-icon">🔍</span>
+          <span class="title-icon"></span>
           Consulta Personalizada (Solo SELECT)
         </h4>
         <div class="query-form">
@@ -387,12 +387,12 @@
             (click)="executeCustomQuery()" 
             [disabled]="loadingDB || !customQuery.trim()"
           >
-            <span *ngIf="!loadingDB">▶ Ejecutar</span>
-            <span *ngIf="loadingDB" class="spinner">⟳ Ejecutando...</span>
+            <span *ngIf="!loadingDB"> Ejecutar</span>
+            <span *ngIf="loadingDB" class="spinner"> Ejecutando...</span>
           </button>
         </div>
         <div class="query-hint">
-          💡 Solo se permiten consultas SELECT por seguridad
+           Solo se permiten consultas SELECT por seguridad
         </div>
       </div>
     </section>
@@ -400,31 +400,31 @@
     <!-- Quick Actions -->
     <section class="actions-section" *ngIf="currentUser?.role === 'admin'">
       <h3 class="section-title">
-        <span class="title-icon">⚡</span>
+        <span class="title-icon"></span>
         Acciones Rápidas
       </h3>
       
       <div class="actions-grid">
         
         <button class="action-btn primary" (click)="navigateTo('/cotizar')">
-          <span class="action-icon">💰</span>
+          <span class="action-icon"></span>
           <span class="action-text">Cotizar</span>
         </button>
         
     
         
         <button class="action-btn secondary">
-          <span class="action-icon">👤</span>
+          <span class="action-icon"></span>
           <span class="action-text">Crear Usuario</span>
         </button>
         
         <button class="action-btn info">
-          <span class="action-icon">📊</span>
+          <span class="action-icon"></span>
           <span class="action-text">Ver Reportes</span>
         </button>
         
         <button class="action-btn warning">
-          <span class="action-icon">⚙️</span>
+          <span class="action-icon"></span>
           <span class="action-text">Configuración</span>
         </button>
         
@@ -434,13 +434,13 @@
     <!-- Recent Activity (placeholder) -->
     <section class="activity-section">
       <h3 class="section-title">
-        <span class="title-icon">📈</span>
+        <span class="title-icon"></span>
         Actividad Reciente
       </h3>
       
       <div class="activity-list">
         <div class="activity-item">
-          <div class="activity-icon">💰</div>
+          <div class="activity-icon"></div>
           <div class="activity-content">
             <div class="activity-title">Nueva cotización generada</div>
             <div class="activity-time">Hace 5 minutos</div>
@@ -448,7 +448,7 @@
         </div>
         
         <div class="activity-item">
-          <div class="activity-icon">📦</div>
+          <div class="activity-icon"></div>
           <div class="activity-content">
             <div class="activity-title">Envío completado #ENV-2024-001</div>
             <div class="activity-time">Hace 15 minutos</div>
@@ -456,7 +456,7 @@
         </div>
         
         <div class="activity-item">
-          <div class="activity-icon">👤</div>
+          <div class="activity-icon"></div>
           <div class="activity-content">
             <div class="activity-title">Usuario conectado: {{ currentUser?.username }}</div>
             <div class="activity-time">Hace 30 minutos</div>

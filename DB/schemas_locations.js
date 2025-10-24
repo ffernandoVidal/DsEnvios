@@ -1,5 +1,5 @@
 /**
- * 🗺️ ESQUEMAS DE UBICACIONES DE GUATEMALA
+ *  ESQUEMAS DE UBICACIONES DE GUATEMALA
  * Sistema de Gestión de Envíos DsEnvios
  * 
  * Este archivo define los esquemas para departments, municipalities, 
@@ -9,7 +9,7 @@
 const { ObjectId } = require('mongodb');
 
 /**
- * 🏛️ ESQUEMA DE DEPARTAMENTOS
+ *  ESQUEMA DE DEPARTAMENTOS
  */
 const DepartmentSchema = {
     validator: {
@@ -108,7 +108,7 @@ const DepartmentSchema = {
 };
 
 /**
- * 🏘️ ESQUEMA DE MUNICIPIOS
+ *  ESQUEMA DE MUNICIPIOS
  */
 const MunicipalitySchema = {
     validator: {
@@ -258,7 +258,7 @@ const MunicipalitySchema = {
 };
 
 /**
- * 🏡 ESQUEMA DE ALDEAS/POBLADOS
+ *  ESQUEMA DE ALDEAS/POBLADOS
  */
 const VillageSchema = {
     validator: {
@@ -390,7 +390,7 @@ const VillageSchema = {
 };
 
 /**
- * 🗃️ ESQUEMA DE CACHE DE DIRECCIONES
+ *  ESQUEMA DE CACHE DE DIRECCIONES
  */
 const AddressCacheSchema = {
     validator: {
@@ -499,7 +499,7 @@ const AddressCacheSchema = {
 };
 
 /**
- * 📍 ESQUEMA DE DIRECCIONES FRECUENTES
+ *  ESQUEMA DE DIRECCIONES FRECUENTES
  */
 const FrequentAddressSchema = {
     validator: {

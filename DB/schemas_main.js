@@ -1,5 +1,5 @@
 /**
- * 📋 ESQUEMAS PRINCIPALES DEL SISTEMA
+ *  ESQUEMAS PRINCIPALES DEL SISTEMA
  * Sistema de Gestión de Envíos DsEnvios
  * 
  * Este archivo define los esquemas principales para users, shipments, 
@@ -9,7 +9,7 @@
 const { ObjectId } = require('mongodb');
 
 /**
- * 👤 ESQUEMA DE USUARIOS
+ *  ESQUEMA DE USUARIOS
  */
 const UserSchema = {
     validator: {
@@ -107,7 +107,7 @@ const UserSchema = {
 };
 
 /**
- * 📦 ESQUEMA DE ENVÍOS
+ *  ESQUEMA DE ENVÍOS
  */
 const ShipmentSchema = {
     validator: {
@@ -302,7 +302,7 @@ const ShipmentSchema = {
 };
 
 /**
- * 💰 ESQUEMA DE COTIZACIONES
+ *  ESQUEMA DE COTIZACIONES
  */
 const QuotationSchema = {
     validator: {
@@ -432,7 +432,7 @@ const QuotationSchema = {
 };
 
 /**
- * 📍 ESQUEMA DE SEGUIMIENTO
+ *  ESQUEMA DE SEGUIMIENTO
  */
 const TrackingSchema = {
     validator: {
@@ -514,7 +514,7 @@ const TrackingSchema = {
 };
 
 /**
- * 🛒 ESQUEMA DE ÓRDENES
+ *  ESQUEMA DE ÓRDENES
  */
 const OrderSchema = {
     validator: {

@@ -1,18 +1,18 @@
 <div class="db-panel-container">
   <div class="panel-header">
-    <h1>🗄️ Panel de Administración de Base de Datos</h1>
+    <h1> Panel de Administración de Base de Datos</h1>
     <button class="btn-refresh" (click)="loadDBStats()" [disabled]="loading">
-      🔄 Actualizar
+       Actualizar
     </button>
   </div>
 
   <!-- Mensajes -->
   <div class="messages">
     <div class="alert alert-success" *ngIf="success">
-      ✅ {{ success }}
+       {{ success }}
     </div>
     <div class="alert alert-error" *ngIf="error">
-      ❌ {{ error }}
+       {{ error }}
     </div>
   </div>
 
@@ -39,14 +39,14 @@
 
   <!-- Lista de colecciones -->
   <div class="collections-section" *ngIf="dbStats && dbStats.collections">
-    <h2>📚 Colecciones Disponibles</h2>
+    <h2> Colecciones Disponibles</h2>
     <div class="collections-grid">
       <div 
         *ngFor="let collection of dbStats.collections" 
         class="collection-card"
         [class.active]="selectedCollection === collection.name"
         (click)="selectCollection(collection.name)">
-        <div class="collection-icon">📁</div>
+        <div class="collection-icon"></div>
         <div class="collection-info">
           <h4>{{ collection.name }}</h4>
           <p>{{ collection.count || 0 }} documentos</p>
@@ -58,13 +58,13 @@
   <!-- Datos de la colección seleccionada -->
   <div class="collection-data-section" *ngIf="selectedCollection && collectionData">
     <div class="section-header">
-      <h2>📄 {{ selectedCollection }}</h2>
+      <h2> {{ selectedCollection }}</h2>
       <div class="actions">
         <button class="btn-primary" (click)="toggleCreateForm()">
-          ➕ Nuevo Documento
+           Nuevo Documento
         </button>
         <button class="btn-secondary" (click)="loadCollectionData(selectedCollection)">
-          🔄 Recargar
+           Recargar
         </button>
       </div>
     </div>
@@ -78,8 +78,8 @@
         rows="10">
       </textarea>
       <div class="form-actions">
-        <button class="btn-primary" (click)="createDocument()">💾 Crear</button>
-        <button class="btn-secondary" (click)="toggleCreateForm()">❌ Cancelar</button>
+        <button class="btn-primary" (click)="createDocument()"> Crear</button>
+        <button class="btn-secondary" (click)="toggleCreateForm()"> Cancelar</button>
       </div>
     </div>
 
@@ -93,8 +93,8 @@
           <div class="document-header">
             <span class="document-id">ID: {{ doc._id }}</span>
             <div class="document-actions">
-              <button class="btn-edit" (click)="editDocument(doc)">✏️ Editar</button>
-              <button class="btn-delete" (click)="deleteDocument(doc._id)">🗑️ Eliminar</button>
+              <button class="btn-edit" (click)="editDocument(doc)"> Editar</button>
+              <button class="btn-delete" (click)="deleteDocument(doc._id)"> Eliminar</button>
             </div>
           </div>
           <pre class="document-content">{{ formatJSON(doc) }}</pre>
@@ -119,20 +119,20 @@
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn-primary" (click)="updateDocument()">💾 Guardar</button>
-            <button class="btn-secondary" (click)="cancelEdit()">❌ Cancelar</button>
+            <button class="btn-primary" (click)="updateDocument()"> Guardar</button>
+            <button class="btn-secondary" (click)="cancelEdit()"> Cancelar</button>
           </div>
         </div>
       </div>
 
       <div *ngIf="collectionData.documents.length === 0" class="empty-state">
-        <p>📭 No hay documentos en esta colección</p>
+        <p> No hay documentos en esta colección</p>
       </div>
     </div>
   </div>
 
   <!-- Mensaje inicial -->
   <div class="empty-state" *ngIf="!selectedCollection && dbStats">
-    <p>👆 Selecciona una colección para ver sus datos</p>
+    <p> Selecciona una colección para ver sus datos</p>
   </div>
 </div>

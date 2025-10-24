@@ -43,7 +43,7 @@ router.post('/create', async (req, res) => {
 
     // Guardar la guía completa
     const resultGuia = await guias.insertOne(guiaCompleta);
-    console.log('✅ Guía completa guardada en guias_envio:', trackingNumber);
+    console.log(' Guía completa guardada en guias_envio:', trackingNumber);
 
     // Preparar resumen para resumen_envio
     const resumenEnvio = {
@@ -91,7 +91,7 @@ router.post('/create', async (req, res) => {
 
     // Guardar resumen
     await resumen.insertOne(resumenEnvio);
-    console.log('✅ Resumen guardado en resumen_envio:', trackingNumber);
+    console.log(' Resumen guardado en resumen_envio:', trackingNumber);
 
     // También guardar en shipments (colección original)
     await db.collection('shipments').insertOne(guiaCompleta);
@@ -115,7 +115,7 @@ router.post('/create', async (req, res) => {
     // Respuesta exitosa
     res.status(201).json({
       success: true,
-      message: '✅ Envío guardado correctamente',
+      message: ' Envío guardado correctamente',
       guide: {
         id: resultGuia.insertedId,
         tracking_number: trackingNumber,
@@ -124,7 +124,7 @@ router.post('/create', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error al guardar envío:', error);
+    console.error(' Error al guardar envío:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error interno del servidor',
@@ -152,7 +152,7 @@ router.get('/', async (req, res) => {
       shipments: shipments
     });
   } catch (error) {
-    console.error('❌ Error al obtener envíos:', error);
+    console.error(' Error al obtener envíos:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error al obtener envíos'
@@ -185,7 +185,7 @@ router.get('/:tracking', async (req, res) => {
       shipment: shipment
     });
   } catch (error) {
-    console.error('❌ Error al buscar envío:', error);
+    console.error(' Error al buscar envío:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Error al buscar envío'

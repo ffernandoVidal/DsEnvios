@@ -11,7 +11,7 @@ async function createTestTrackingData() {
             database: 'enviosdb'
         });
 
-        console.log('✅ Conectado a la base de datos\n');
+        console.log(' Conectado a la base de datos\n');
 
         // Crear personas (remitente y destinatario)
         await connection.query(
@@ -21,7 +21,7 @@ async function createTestTrackingData() {
              ('María Elena', 'Rodríguez Pérez', '9876543210987', '5552-5678', 'Zona 1, Quetzaltenango', 'maria.rodriguez@email.com', 'cliente')
              ON DUPLICATE KEY UPDATE id=id`
         );
-        console.log('✅ Personas creadas\n');
+        console.log(' Personas creadas\n');
 
         // Obtener IDs de las personas
         const [personas] = await connection.query('SELECT id FROM personas ORDER BY id LIMIT 2');
@@ -92,7 +92,7 @@ async function createTestTrackingData() {
                     guia.fecha_estimada_entrega
                 ]
             );
-            console.log(`✅ Guía creada/actualizada: ${guia.numero_guia}`);
+            console.log(` Guía creada/actualizada: ${guia.numero_guia}`);
         }
 
         // Crear historial de tracking completo para ENV-2025-001 (ENTREGADO)
@@ -120,7 +120,7 @@ async function createTestTrackingData() {
                     [idGuia1, track.id_estado, track.observaciones, track.fecha]
                 );
             }
-            console.log(`✅ Tracking completo creado para ENV-2025-001`);
+            console.log(` Tracking completo creado para ENV-2025-001`);
         }
 
         // Crear tracking para ENV-2025-002 (EN_TRANSITO)
@@ -146,7 +146,7 @@ async function createTestTrackingData() {
                     [idGuia2, track.id_estado, track.observaciones, track.fecha]
                 );
             }
-            console.log(`✅ Tracking creado para ENV-2025-002`);
+            console.log(` Tracking creado para ENV-2025-002`);
         }
 
         // Crear tracking para ENV-2025-003 (EN_BODEGA)
@@ -171,7 +171,7 @@ async function createTestTrackingData() {
                     [idGuia3, track.id_estado, track.observaciones, track.fecha]
                 );
             }
-            console.log(`✅ Tracking creado para ENV-2025-003`);
+            console.log(` Tracking creado para ENV-2025-003`);
         }
 
         // Crear tracking para ENV-2025-004 (PENDIENTE)
@@ -188,11 +188,11 @@ async function createTestTrackingData() {
                  VALUES (?, ?, ?, NOW())`,
                 [idGuia4, 1, 'Envío registrado, esperando recolección']
             );
-            console.log(`✅ Tracking creado para ENV-2025-004`);
+            console.log(` Tracking creado para ENV-2025-004`);
         }
 
-        console.log('\n🎉 Datos de prueba creados exitosamente!');
-        console.log('\n📦 Guías disponibles para rastrear:');
+        console.log('\n Datos de prueba creados exitosamente!');
+        console.log('\n Guías disponibles para rastrear:');
         console.log('   - ENV-2025-001 (Entregado)');
         console.log('   - ENV-2025-002 (En tránsito)');
         console.log('   - ENV-2025-003 (En bodega)');
@@ -200,7 +200,7 @@ async function createTestTrackingData() {
 
         await connection.end();
     } catch (error) {
-        console.error('❌ Error:', error.message);
+        console.error(' Error:', error.message);
     }
 }
 

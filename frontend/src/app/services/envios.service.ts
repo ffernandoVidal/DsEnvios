@@ -365,14 +365,14 @@ export class EnviosService {
       'Authorization': `Bearer ${token}`
     });
 
-    console.log('📦 Creando envío mejorado:', datosEnvio);
+    console.log(' Creando envío mejorado:', datosEnvio);
 
     return this.http.post(`${this.apiUrl}/shipments/enhanced`, datosEnvio, { headers }).pipe(
       tap(response => {
-        console.log('✅ Envío creado exitosamente:', response);
+        console.log(' Envío creado exitosamente:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al crear envío:', error);
+        console.error(' Error al crear envío:', error);
         throw error;
       })
     );
@@ -389,10 +389,10 @@ export class EnviosService {
 
     return this.http.get(`${this.apiUrl}/shipments/user`, { headers }).pipe(
       tap(response => {
-        console.log('📋 Envíos obtenidos:', response);
+        console.log(' Envíos obtenidos:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al obtener envíos:', error);
+        console.error(' Error al obtener envíos:', error);
         throw error;
       })
     );
@@ -416,10 +416,10 @@ export class EnviosService {
 
     return this.http.put(`${this.apiUrl}/shipments/${shipmentId}/status`, data, { headers }).pipe(
       tap(response => {
-        console.log('✅ Estado actualizado:', response);
+        console.log(' Estado actualizado:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al actualizar estado:', error);
+        console.error(' Error al actualizar estado:', error);
         throw error;
       })
     );
@@ -431,10 +431,10 @@ export class EnviosService {
   rastrearEnvio(trackingNumber: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/shipments/track/${trackingNumber}`).pipe(
       tap(response => {
-        console.log('🔍 Información de rastreo:', response);
+        console.log(' Información de rastreo:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al rastrear envío:', error);
+        console.error(' Error al rastrear envío:', error);
         throw error;
       })
     );
@@ -461,10 +461,10 @@ export class EnviosService {
 
     return this.http.get(`${this.apiUrl}/frequent-addresses${params}`, { headers }).pipe(
       tap(response => {
-        console.log('📍 Direcciones frecuentes obtenidas:', response);
+        console.log(' Direcciones frecuentes obtenidas:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al obtener direcciones frecuentes:', error);
+        console.error(' Error al obtener direcciones frecuentes:', error);
         throw error;
       })
     );
@@ -482,10 +482,10 @@ export class EnviosService {
 
     return this.http.post(`${this.apiUrl}/frequent-addresses`, direccion, { headers }).pipe(
       tap(response => {
-        console.log('✅ Dirección frecuente creada:', response);
+        console.log(' Dirección frecuente creada:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al crear dirección frecuente:', error);
+        console.error(' Error al crear dirección frecuente:', error);
         throw error;
       })
     );
@@ -503,10 +503,10 @@ export class EnviosService {
 
     return this.http.post(`${this.apiUrl}/frequent-addresses/${addressId}/use`, {}, { headers }).pipe(
       tap(response => {
-        console.log('📊 Uso de dirección registrado:', response);
+        console.log(' Uso de dirección registrado:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al registrar uso de dirección:', error);
+        console.error(' Error al registrar uso de dirección:', error);
         throw error;
       })
     );
@@ -518,10 +518,10 @@ export class EnviosService {
   obtenerMetodosPago(): Observable<any> {
     return this.http.get(`${this.apiUrl}/payment-methods`).pipe(
       tap(response => {
-        console.log('💳 Métodos de pago obtenidos:', response);
+        console.log(' Métodos de pago obtenidos:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al obtener métodos de pago:', error);
+        console.error(' Error al obtener métodos de pago:', error);
         throw error;
       })
     );
@@ -535,10 +535,10 @@ export class EnviosService {
 
     return this.http.post(`${this.apiUrl}/payment-methods/calculate-fee`, data).pipe(
       tap(response => {
-        console.log('💰 Cargo calculado:', response);
+        console.log(' Cargo calculado:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al calcular cargo:', error);
+        console.error(' Error al calcular cargo:', error);
         throw error;
       })
     );
@@ -552,10 +552,10 @@ export class EnviosService {
 
     return this.http.get(`${this.apiUrl}/package-types${params}`).pipe(
       tap(response => {
-        console.log('📦 Tipos de paquetes obtenidos:', response);
+        console.log(' Tipos de paquetes obtenidos:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al obtener tipos de paquetes:', error);
+        console.error(' Error al obtener tipos de paquetes:', error);
         throw error;
       })
     );
@@ -569,10 +569,10 @@ export class EnviosService {
 
     return this.http.post(`${this.apiUrl}/package-types/validate`, data).pipe(
       tap(response => {
-        console.log('✅ Validación de paquete:', response);
+        console.log(' Validación de paquete:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al validar paquete:', error);
+        console.error(' Error al validar paquete:', error);
         throw error;
       })
     );
@@ -590,10 +590,10 @@ export class EnviosService {
 
     return this.http.post(`${this.apiUrl}/shipments/create-with-validation`, datosEnvio, { headers }).pipe(
       tap(response => {
-        console.log('🚚 Envío creado exitosamente:', response);
+        console.log(' Envío creado exitosamente:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al crear envío:', error);
+        console.error(' Error al crear envío:', error);
         throw error;
       })
     );
@@ -605,10 +605,10 @@ export class EnviosService {
   createShipment(shipmentData: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/shipments/create-with-validation`, shipmentData).pipe(
       tap(response => {
-        console.log('📦 Envío creado:', response);
+        console.log(' Envío creado:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al crear envío:', error);
+        console.error(' Error al crear envío:', error);
         throw error;
       })
     );
@@ -620,10 +620,10 @@ export class EnviosService {
   getPackageTypes(): Observable<PackageType[]> {
     return this.http.get<PackageType[]>(`${this.apiUrl}/package-types`).pipe(
       tap(response => {
-        console.log('📦 Tipos de paquete obtenidos:', response);
+        console.log(' Tipos de paquete obtenidos:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al obtener tipos de paquete:', error);
+        console.error(' Error al obtener tipos de paquete:', error);
         throw error;
       })
     );
@@ -635,10 +635,10 @@ export class EnviosService {
   getPaymentMethods(): Observable<PaymentMethod[]> {
     return this.http.get<PaymentMethod[]>(`${this.apiUrl}/payment-methods`).pipe(
       tap(response => {
-        console.log('💳 Métodos de pago obtenidos:', response);
+        console.log(' Métodos de pago obtenidos:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al obtener métodos de pago:', error);
+        console.error(' Error al obtener métodos de pago:', error);
         throw error;
       })
     );
@@ -650,10 +650,10 @@ export class EnviosService {
   getLocationData(): Observable<LocationData> {
     return this.http.get<LocationData>(`${this.apiUrl}/locations/guatemala`).pipe(
       tap(response => {
-        console.log('🌍 Datos de ubicación obtenidos:', response);
+        console.log(' Datos de ubicación obtenidos:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al obtener datos de ubicación:', error);
+        console.error(' Error al obtener datos de ubicación:', error);
         throw error;
       })
     );
@@ -665,10 +665,10 @@ export class EnviosService {
   obtenerDepartamentos(): Observable<any> {
     return this.http.get(`${this.apiUrl}/guatemala/departments`).pipe(
       tap(response => {
-        console.log('🏛️ Departamentos obtenidos:', response);
+        console.log(' Departamentos obtenidos:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al obtener departamentos:', error);
+        console.error(' Error al obtener departamentos:', error);
         throw error;
       })
     );
@@ -680,10 +680,10 @@ export class EnviosService {
   obtenerMunicipios(department: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/guatemala/municipalities?department=${encodeURIComponent(department)}`).pipe(
       tap(response => {
-        console.log('🏘️ Municipios obtenidos:', response);
+        console.log(' Municipios obtenidos:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al obtener municipios:', error);
+        console.error(' Error al obtener municipios:', error);
         throw error;
       })
     );
@@ -697,10 +697,10 @@ export class EnviosService {
     
     return this.http.get(`${this.apiUrl}/guatemala/villages${params}`).pipe(
       tap(response => {
-        console.log('🏡 Poblados obtenidos:', response);
+        console.log(' Poblados obtenidos:', response);
       }),
       catchError(error => {
-        console.error('❌ Error al obtener poblados:', error);
+        console.error(' Error al obtener poblados:', error);
         throw error;
       })
     );

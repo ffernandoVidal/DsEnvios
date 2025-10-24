@@ -1,12 +1,12 @@
 <div class="lista-guias-container">
   <div class="header">
-    <h2>📋 Lista de Guías de Envío</h2>
+    <h2> Lista de Guías de Envío</h2>
     <p>Gestione y consulte todas las guías de envío registradas en el sistema</p>
   </div>
 
   <!-- Filtros -->
   <div class="filters-section">
-    <h3>🔍 Filtros de Búsqueda</h3>
+    <h3> Filtros de Búsqueda</h3>
     
     <form [formGroup]="filtroForm" class="filters-form">
       <div class="filters-grid">
@@ -53,10 +53,10 @@
 
       <div class="filter-actions">
         <button type="button" class="btn btn-secondary" (click)="clearFilters()">
-          🔄 Limpiar Filtros
+           Limpiar Filtros
         </button>
         <button type="button" class="btn btn-primary" (click)="onFilterChange()">
-          🔍 Buscar
+           Buscar
         </button>
       </div>
     </form>
@@ -64,7 +64,7 @@
 
   <!-- Mensaje de error -->
   <div *ngIf="errorMessage" class="alert alert-error">
-    <i class="icon-error">❌</i>
+    <i class="icon-error"></i>
     {{ errorMessage }}
   </div>
 
@@ -77,10 +77,10 @@
   <!-- Tabla de guías -->
   <div class="table-section" *ngIf="!isLoading">
     <div class="table-header">
-      <h3>📦 Guías Registradas ({{ totalItems }})</h3>
+      <h3> Guías Registradas ({{ totalItems }})</h3>
       <div class="table-actions">
         <button class="btn btn-success" routerLink="/crear-guia">
-          ➕ Nueva Guía
+           Nueva Guía
         </button>
       </div>
     </div>
@@ -156,19 +156,19 @@
                   class="btn-icon btn-info" 
                   (click)="verDetalles(guia)"
                   title="Ver detalles">
-                  👁️
+                  
                 </button>
                 <button 
                   class="btn-icon btn-primary" 
                   (click)="verSeguimiento(guia.numero_guia)"
                   title="Ver seguimiento">
-                  📍
+                  
                 </button>
                 <button 
                   class="btn-icon btn-warning" 
                   (click)="editarGuia(guia)"
                   title="Editar">
-                  ✏️
+                  
                 </button>
               </div>
             </td>
@@ -179,11 +179,11 @@
 
     <!-- Mensaje cuando no hay guías -->
     <div *ngIf="guias.length === 0" class="no-data">
-      <div class="no-data-icon">📦</div>
+      <div class="no-data-icon"></div>
       <h3>No se encontraron guías</h3>
       <p>No hay guías que coincidan con los filtros aplicados</p>
       <button class="btn btn-primary" routerLink="/crear-guia">
-        ➕ Crear Primera Guía
+         Crear Primera Guía
       </button>
     </div>
 

@@ -1,6 +1,6 @@
 <div class="crear-envio-container">
   <div class="header">
-    <h1>📦 Crear Nuevo Envío</h1>
+    <h1> Crear Nuevo Envío</h1>
     <div class="progress-bar">
       <div class="progress-step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
         <div class="step-number">1</div>
@@ -24,7 +24,7 @@
   <div class="form-container" *ngIf="!loading">
     <!-- PASO 1: DATOS DEL REMITENTE -->
     <div class="form-step" *ngIf="currentStep === 1">
-      <h2>📤 Información del Remitente</h2>
+      <h2> Información del Remitente</h2>
       
       <div class="form-row">
         <div class="form-group">
@@ -75,7 +75,7 @@
 
     <!-- PASO 2: DATOS DEL DESTINATARIO -->
     <div class="form-step" *ngIf="currentStep === 2">
-      <h2>📥 Información del Destinatario</h2>
+      <h2> Información del Destinatario</h2>
       
       <div class="form-row">
         <div class="form-group">
@@ -127,7 +127,7 @@
 
     <!-- PASO 3: DETALLES DEL PAQUETE -->
     <div class="form-step" *ngIf="currentStep === 3">
-      <h2>📦 Detalles del Paquete y Servicio</h2>
+      <h2> Detalles del Paquete y Servicio</h2>
       
       <div class="form-row">
         <div class="form-group">
@@ -202,7 +202,7 @@
 
       <!-- CÁLCULO DE COSTOS -->
       <div class="cost-calculation" *ngIf="calculatedCost.totalCost > 0">
-        <h3>💰 Detalle de Costos</h3>
+        <h3> Detalle de Costos</h3>
         <div class="cost-row">
           <span>Costo Base:</span>
           <span>Q {{ calculatedCost.baseCost.toFixed(2) }}</span>
@@ -244,10 +244,10 @@
 
     <!-- PASO 4: CONFIRMACIÓN -->
     <div class="form-step" *ngIf="currentStep === 4">
-      <h2>✅ Confirmación del Envío</h2>
+      <h2> Confirmación del Envío</h2>
       
       <div class="confirmation-section">
-        <h3>📤 Remitente</h3>
+        <h3> Remitente</h3>
         <p><strong>Nombre:</strong> {{ shipmentForm.senderName }}</p>
         <p><strong>Teléfono:</strong> {{ shipmentForm.senderPhone }}</p>
         <p><strong>Email:</strong> {{ shipmentForm.senderEmail || 'No proporcionado' }}</p>
@@ -255,7 +255,7 @@
       </div>
 
       <div class="confirmation-section">
-        <h3>📥 Destinatario</h3>
+        <h3> Destinatario</h3>
         <p><strong>Nombre:</strong> {{ shipmentForm.recipientName }}</p>
         <p><strong>Teléfono:</strong> {{ shipmentForm.recipientPhone }}</p>
         <p><strong>Email:</strong> {{ shipmentForm.recipientEmail || 'No proporcionado' }}</p>
@@ -263,7 +263,7 @@
       </div>
 
       <div class="confirmation-section">
-        <h3>📦 Detalles del Paquete</h3>
+        <h3> Detalles del Paquete</h3>
         <p><strong>Tipo:</strong> {{ getPackageTypeName(shipmentForm.packageTypeId) }}</p>
         <p><strong>Peso:</strong> {{ shipmentForm.weightKg }} kg</p>
         <p><strong>Descripción:</strong> {{ shipmentForm.description }}</p>
@@ -272,20 +272,20 @@
       </div>
 
       <div class="confirmation-section">
-        <h3>🚚 Servicio</h3>
+        <h3> Servicio</h3>
         <p><strong>Tipo de Servicio:</strong> {{ getServiceTypeName(shipmentForm.serviceTypeId) }}</p>
         <p><strong>Método de Pago:</strong> {{ getPaymentMethodName(shipmentForm.paymentMethodId) }}</p>
       </div>
 
       <div class="confirmation-section cost-summary">
-        <h3>💰 Costo Total</h3>
+        <h3> Costo Total</h3>
         <h2 class="total-amount">Q {{ calculatedCost.totalCost.toFixed(2) }}</h2>
       </div>
 
       <div class="form-actions">
         <button class="btn btn-secondary" (click)="prevStep()">← Anterior</button>
         <button class="btn btn-success" (click)="createShipment()" [disabled]="loading">
-          <span *ngIf="!loading">✓ Crear Envío</span>
+          <span *ngIf="!loading"> Crear Envío</span>
           <span *ngIf="loading">Creando...</span>
         </button>
       </div>

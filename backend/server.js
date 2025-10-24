@@ -81,9 +81,9 @@ function authenticateToken(req, res, next) {
     });
 }
 
-console.log('🚀 Iniciando servidor con integración Forza Ecommerce Engine...');
-console.log('🔧 Forza API habilitada:', FORZA_CONFIG.enabled);
-console.log('🗺️ Google Maps API habilitada:', GOOGLE_MAPS_CONFIG.enabled);
+console.log(' Iniciando servidor con integración Forza Ecommerce Engine...');
+console.log(' Forza API habilitada:', FORZA_CONFIG.enabled);
+console.log(' Google Maps API habilitada:', GOOGLE_MAPS_CONFIG.enabled);
 
 // ============================================
 // CONFIGURACIÓN DE PRECIOS FORZA
@@ -138,7 +138,7 @@ const FORZA_PRICING = {
  */
 async function calculateDistance(origin, destination) {
     if (!GOOGLE_MAPS_CONFIG.enabled) {
-        console.log('⚠️ Google Maps API no configurada, usando cálculo estimado');
+        console.log(' Google Maps API no configurada, usando cálculo estimado');
         return estimateDistanceLocal(origin, destination);
     }
 
@@ -153,7 +153,7 @@ async function calculateDistance(origin, destination) {
             region: 'gt'
         };
 
-        console.log('🗺️ Calculando distancia con Google Maps API...');
+        console.log(' Calculando distancia con Google Maps API...');
         const response = await axios.get(url, { params, timeout: 10000 });
 
         if (response.data.status === 'OK' && response.data.rows[0].elements[0].status === 'OK') {
@@ -166,14 +166,14 @@ async function calculateDistance(origin, destination) {
                 source: 'google_maps'
             };
 
-            console.log('✅ Distancia calculada:', distanceData);
+            console.log(' Distancia calculada:', distanceData);
             return distanceData;
         } else {
-            console.log('⚠️ Google Maps API sin resultados, usando estimación local');
+            console.log(' Google Maps API sin resultados, usando estimación local');
             return estimateDistanceLocal(origin, destination);
         }
     } catch (error) {
-        console.error('❌ Error calculando distancia con Google Maps:', error.message);
+        console.error(' Error calculando distancia con Google Maps:', error.message);
         return estimateDistanceLocal(origin, destination);
     }
 }
@@ -232,7 +232,7 @@ function extractDepartmentFromCity(cityName) {
  */
 async function calculateShippingCost(origin, destination, packageDetails, serviceType = 'standard') {
     try {
-        console.log('💰 Calculando costo de envío con tarifas Forza...');
+        console.log(' Calculando costo de envío con tarifas Forza...');
         
         // 1. Calcular distancia
         const distanceData = await calculateDistance(origin, destination);
@@ -280,7 +280,7 @@ async function calculateShippingCost(origin, destination, packageDetails, servic
             total: parseFloat(total.toFixed(2))
         };
         
-        console.log('✅ Costo calculado:', breakdown);
+        console.log(' Costo calculado:', breakdown);
         
         return {
             success: true,
@@ -296,7 +296,7 @@ async function calculateShippingCost(origin, destination, packageDetails, servic
         };
         
     } catch (error) {
-        console.error('❌ Error calculando costo de envío:', error);
+        console.error(' Error calculando costo de envío:', error);
         throw error;
     }
 }
@@ -356,7 +356,7 @@ function calculateDeliveryTime(serviceType, distance) {
 // ============================================
 async function connectToMongoDB() {
     try {
-        console.log('🔄 Conectando a MongoDB...');
+        console.log(' Conectando a MongoDB...');
         
         // Usar el configurador de base de datos
         await dbConfig.autoInitialize();
@@ -366,15 +366,15 @@ async function connectToMongoDB() {
         mongoClient = client;
         db = database;
         
-        console.log('✅ MongoDB conectado exitosamente:', DB_NAME);
-        console.log('✅ Base de datos inicializada y lista para usar');
+        console.log(' MongoDB conectado exitosamente:', DB_NAME);
+        console.log(' Base de datos inicializada y lista para usar');
         
         // Crear usuarios por defecto (mantener funcionalidad existente)
         await createDefaultUsers();
         
         return true;
     } catch (error) {
-        console.error('❌ Error conectando a MongoDB:', error.message);
+        console.error(' Error conectando a MongoDB:', error.message);
         return false;
     }
 }
@@ -414,17 +414,17 @@ async function createDefaultUsers() {
             ];
             
             await users.insertMany(defaultUsers);
-            console.log('👥 Usuarios por defecto creados');
+            console.log(' Usuarios por defecto creados');
         }
     } catch (error) {
-        console.error('❌ Error creando usuarios:', error.message);
+        console.error(' Error creando usuarios:', error.message);
     }
 }
 
 // Inicializar colecciones y índices para el sistema de cotizaciones
 async function initializeCollections() {
     try {
-        console.log('🔧 Inicializando colecciones de base de datos...');
+        console.log(' Inicializando colecciones de base de datos...');
         
         // Crear índices para colección de cotizaciones
         const quotations = db.collection('quotations');
@@ -452,7 +452,7 @@ async function initializeCollections() {
                 created_at: new Date(),
                 created_by: 'system'
             });
-            console.log('💰 Configuración de precios por defecto creada');
+            console.log(' Configuración de precios por defecto creada');
         }
         
         // Crear índices para tracking de distancias (cache)
@@ -578,7 +578,7 @@ async function initializeCollections() {
             ];
             
             await paymentMethods.insertMany(defaultPaymentMethods);
-            console.log('💳 Métodos de pago por defecto creados');
+            console.log(' Métodos de pago por defecto creados');
         }
         
         // Colección de tipos de paquetes
@@ -723,7 +723,7 @@ async function initializeCollections() {
             ];
             
             await packageTypes.insertMany(defaultPackageTypes);
-            console.log('📦 Tipos de paquetes por defecto creados');
+            console.log(' Tipos de paquetes por defecto creados');
         }
         
         console.log('Colecciones e índices inicializados correctamente');
@@ -769,7 +769,7 @@ async function callForzaAPI(endpoint, method = 'GET', data = null) {
             config.data = data;
         }
 
-        console.log(`🔗 Llamando Forza API: ${method} ${config.url}`);
+        console.log(` Llamando Forza API: ${method} ${config.url}`);
         const response = await axios(config);
         
         console.log('Respuesta de Forza API recibida');
@@ -1184,7 +1184,7 @@ app.post('/api/shipments', authenticateToken, async (req, res) => {
 // Obtener envíos del usuario (según rol)
 app.get('/api/shipments', authenticateToken, async (req, res) => {
     try {
-        console.log('📋 Obteniendo envíos para usuario:', req.user);
+        console.log(' Obteniendo envíos para usuario:', req.user);
 
         let query = {};
         
@@ -1226,7 +1226,7 @@ app.get('/api/shipments', authenticateToken, async (req, res) => {
 app.get('/api/shipments/track/:trackingNumber', async (req, res) => {
     try {
         const { trackingNumber } = req.params;
-        console.log('🔍 Rastreando envío:', trackingNumber);
+        console.log(' Rastreando envío:', trackingNumber);
 
         const shipment = await db.collection('shipments').findOne({
             trackingNumber: trackingNumber
@@ -1266,7 +1266,7 @@ app.get('/api/shipments/track/:trackingNumber', async (req, res) => {
             createdAt: shipment.createdAt
         };
 
-        console.log('✅ Envío encontrado');
+        console.log(' Envío encontrado');
 
         res.json({
             success: true,
@@ -1274,7 +1274,7 @@ app.get('/api/shipments/track/:trackingNumber', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error al rastrear envío:', error);
+        console.error(' Error al rastrear envío:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor'
@@ -1338,7 +1338,7 @@ app.put('/api/shipments/:id/status', authenticateToken, async (req, res) => {
             });
         }
 
-        console.log('✅ Estado de envío actualizado:', id);
+        console.log(' Estado de envío actualizado:', id);
 
         res.json({
             success: true,
@@ -1346,7 +1346,7 @@ app.put('/api/shipments/:id/status', authenticateToken, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error al actualizar estado:', error);
+        console.error(' Error al actualizar estado:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor'
@@ -1480,7 +1480,7 @@ app.get('/api/guatemala/locations', (req, res) => {
             count: getAllLocationsFlat().length
         });
     } catch (error) {
-        console.error('❌ Error obteniendo ubicaciones:', error);
+        console.error(' Error obteniendo ubicaciones:', error);
         res.status(500).json({
             success: false,
             message: 'Error obteniendo ubicaciones'
@@ -1517,7 +1517,7 @@ app.get('/api/guatemala/locations/:departamento', (req, res) => {
             count: locations.length
         });
     } catch (error) {
-        console.error('❌ Error obteniendo ubicaciones por departamento:', error);
+        console.error(' Error obteniendo ubicaciones por departamento:', error);
         res.status(500).json({
             success: false,
             message: 'Error obteniendo ubicaciones'
@@ -1535,7 +1535,7 @@ app.get('/api/guatemala/departamentos', (req, res) => {
             count: departamentos.length
         });
     } catch (error) {
-        console.error('❌ Error obteniendo departamentos:', error);
+        console.error(' Error obteniendo departamentos:', error);
         res.status(500).json({
             success: false,
             message: 'Error obteniendo departamentos'
@@ -1591,7 +1591,7 @@ app.get('/api/guatemala/search', (req, res) => {
             count: filteredLocations.length
         });
     } catch (error) {
-        console.error('❌ Error en búsqueda de ubicaciones:', error);
+        console.error(' Error en búsqueda de ubicaciones:', error);
         res.status(500).json({
             success: false,
             message: 'Error en búsqueda'
@@ -1703,7 +1703,7 @@ app.post('/api/forza/quote', async (req, res) => {
             }
         };
 
-        console.log('📦 Cotizando con Forza API:', forzaData);
+        console.log(' Cotizando con Forza API:', forzaData);
         const result = await callForzaAPI('/shipping/quote', 'POST', forzaData);
 
         if (result.success) {
@@ -1729,7 +1729,7 @@ app.post('/api/forza/quote', async (req, res) => {
         }
 
     } catch (error) {
-        console.error('❌ Error en cotización Forza:', error);
+        console.error(' Error en cotización Forza:', error);
         
         // Fallback a cotización local
         try {
@@ -1802,7 +1802,7 @@ app.post('/api/forza/tracking', async (req, res) => {
             try {
                 trackingResult = await callForzaAPI(`/tracking/${trackingNumber}`, 'GET');
             } catch (error) {
-                console.log('⚠️ Error con Forza API, usando fallback local:', error.message);
+                console.log(' Error con Forza API, usando fallback local:', error.message);
                 trackingResult = generateLocalTracking(trackingNumber);
             }
         } else {
@@ -1826,7 +1826,7 @@ app.post('/api/forza/tracking', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error en tracking:', error);
+        console.error(' Error en tracking:', error);
         res.status(500).json({
             success: false,
             message: 'Error consultando tracking'
@@ -1942,7 +1942,7 @@ async function generateLocalQuote(origin, destination, packageDetails) {
 
 app.post('/api/cotizar', async (req, res) => {
     try {
-        console.log('📦 Nueva solicitud de cotización:', req.body);
+        console.log(' Nueva solicitud de cotización:', req.body);
         
         const { 
             origen, 
@@ -2080,17 +2080,17 @@ app.post('/api/cotizar', async (req, res) => {
                     user_agent: req.get('User-Agent'),
                     created_at: new Date()
                 });
-                console.log('✅ Cotización guardada en base de datos');
+                console.log(' Cotización guardada en base de datos');
             } catch (dbError) {
-                console.error('⚠️ Error guardando cotización en DB:', dbError.message);
+                console.error(' Error guardando cotización en DB:', dbError.message);
             }
         }
 
-        console.log('✅ Cotización generada exitosamente:', response.cotizacion.id);
+        console.log(' Cotización generada exitosamente:', response.cotizacion.id);
         res.json(response);
 
     } catch (error) {
-        console.error('❌ Error en endpoint de cotización:', error);
+        console.error(' Error en endpoint de cotización:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor al generar cotización',
@@ -2139,7 +2139,7 @@ async function generateServiceOptions(origin, destination, baseCotizacion) {
                 });
             }
         } catch (error) {
-            console.error(`⚠️ Error generando opción de servicio ${serviceType}:`, error.message);
+            console.error(` Error generando opción de servicio ${serviceType}:`, error.message);
         }
     }
 
@@ -2184,7 +2184,7 @@ app.post('/api/shipments', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error obteniendo envíos:', error);
+        console.error(' Error obteniendo envíos:', error);
         res.status(500).json({
             success: false,
             message: 'Error obteniendo envíos'
@@ -2254,7 +2254,7 @@ app.post('/api/quotes', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error obteniendo cotizaciones:', error);
+        console.error(' Error obteniendo cotizaciones:', error);
         res.status(500).json({
             success: false,
             message: 'Error obteniendo cotizaciones'
@@ -2446,18 +2446,18 @@ app.get('/api/auth/test', (req, res) => {
 });
 
 // Login de usuario
-console.log('🔧 Registrando endpoint: POST /api/auth/login');
+console.log(' Registrando endpoint: POST /api/auth/login');
 app.post('/api/auth/login', async (req, res) => {
     try {
-        console.log('🔐 Intento de login - Endpoint alcanzado...');
-        console.log('📝 Body recibido:', JSON.stringify(req.body, null, 2));
+        console.log(' Intento de login - Endpoint alcanzado...');
+        console.log(' Body recibido:', JSON.stringify(req.body, null, 2));
         
         const { username, password } = req.body;
-        console.log('👤 Usuario:', username);
-        console.log('🔑 Password recibido:', password ? '***' : 'undefined');
+        console.log(' Usuario:', username);
+        console.log(' Password recibido:', password ? '***' : 'undefined');
 
         if (!username || !password) {
-            console.log('❌ Faltan credenciales');
+            console.log(' Faltan credenciales');
             return res.status(400).json({
                 success: false,
                 message: 'Usuario y contraseña son requeridos'
@@ -2515,7 +2515,7 @@ app.post('/api/auth/login', async (req, res) => {
             { expiresIn: '24h' }
         );
 
-        console.log('✅ Login exitoso para:', username);
+        console.log(' Login exitoso para:', username);
 
         res.json({
             success: true,
@@ -2533,8 +2533,8 @@ app.post('/api/auth/login', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error en login:', error.message);
-        console.error('❌ Stack trace:', error.stack);
+        console.error(' Error en login:', error.message);
+        console.error(' Stack trace:', error.stack);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor'
@@ -2557,7 +2557,7 @@ app.get('/api/auth/verify', authenticateToken, (req, res) => {
 // Crear nuevo envío con validación completa
 app.post('/api/shipments/enhanced', authenticateToken, async (req, res) => {
     try {
-        console.log('📦 Creando nuevo envío mejorado...');
+        console.log(' Creando nuevo envío mejorado...');
         console.log('Usuario autenticado:', req.user);
         console.log('Datos del envío:', JSON.stringify(req.body, null, 2));
 
@@ -2702,7 +2702,7 @@ app.post('/api/shipments/enhanced', authenticateToken, async (req, res) => {
         // Insertar en base de datos
         const result = await db.collection('shipments').insertOne(newShipment);
 
-        console.log('✅ Envío mejorado creado exitosamente:', trackingNumber);
+        console.log(' Envío mejorado creado exitosamente:', trackingNumber);
 
         res.status(201).json({
             success: true,
@@ -2717,7 +2717,7 @@ app.post('/api/shipments/enhanced', authenticateToken, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error al crear envío mejorado:', error);
+        console.error(' Error al crear envío mejorado:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor al crear el envío'
@@ -2728,7 +2728,7 @@ app.post('/api/shipments/enhanced', authenticateToken, async (req, res) => {
 // Obtener envíos del usuario (con filtros por rol)
 app.get('/api/shipments/user', authenticateToken, async (req, res) => {
     try {
-        console.log('📋 Obteniendo envíos para usuario:', req.user);
+        console.log(' Obteniendo envíos para usuario:', req.user);
 
         let query = {};
         
@@ -2750,7 +2750,7 @@ app.get('/api/shipments/user', authenticateToken, async (req, res) => {
             .sort({ createdAt: -1 })
             .toArray();
 
-        console.log(`✅ Se encontraron ${shipments.length} envíos para ${req.user.role}`);
+        console.log(` Se encontraron ${shipments.length} envíos para ${req.user.role}`);
 
         res.json({
             success: true,
@@ -2760,7 +2760,7 @@ app.get('/api/shipments/user', authenticateToken, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error al obtener envíos:', error);
+        console.error(' Error al obtener envíos:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor'
@@ -2824,7 +2824,7 @@ app.put('/api/shipments/:id/status', authenticateToken, async (req, res) => {
             });
         }
 
-        console.log('✅ Estado de envío actualizado:', id, 'por', req.user.name);
+        console.log(' Estado de envío actualizado:', id, 'por', req.user.name);
 
         res.json({
             success: true,
@@ -2833,7 +2833,7 @@ app.put('/api/shipments/:id/status', authenticateToken, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error al actualizar estado:', error);
+        console.error(' Error al actualizar estado:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor'
@@ -3416,7 +3416,7 @@ app.post('/api/package-types/validate', async (req, res) => {
 // Crear envío con validaciones completas del nuevo formulario
 app.post('/api/shipments/create-with-validation', authenticateToken, async (req, res) => {
     try {
-        console.log('📦 Creando envío con validaciones completas...');
+        console.log(' Creando envío con validaciones completas...');
         
         const {
             // Paso 1: Información del destinatario (campos obligatorios con *)
@@ -3612,7 +3612,7 @@ app.post('/api/shipments/create-with-validation', authenticateToken, async (req,
             );
         }
 
-        console.log('✅ Envío creado exitosamente:', trackingNumber);
+        console.log(' Envío creado exitosamente:', trackingNumber);
 
         res.json({
             success: true,
@@ -3766,75 +3766,76 @@ async function startServer() {
         
         app.listen(PORT, () => {
             console.log('');
-            console.log('🚀 ===============================================');
-            console.log(`📡 Servidor ejecutándose en http://localhost:${PORT}`);
-            console.log('🎯 Endpoints disponibles:');
-            console.log('   📊 GET  /api/health');
-            console.log('   💾 GET  /api/db-status');
-            console.log('   🔐 POST /api/auth/login');
-            console.log('   🌐 GET  /api/forza/status');
-            console.log('   📦 POST /api/forza/quote');
-            console.log('   🚚 POST /api/forza/shipment');
-            console.log('   📍 POST /api/forza/tracking');
-            console.log('   📋 POST /api/shipments');
-            console.log('   💰 POST /api/quotes');
-            console.log('   🏛️  GET  /api/guatemala/departments');
-            console.log('   🏘️  GET  /api/guatemala/municipalities');
-            console.log('   🏡 GET  /api/guatemala/villages');
+            console.log(' ===============================================');
+            console.log(` Servidor ejecutándose en http://localhost:${PORT}`);
+            console.log(' Endpoints disponibles:');
+            console.log('    GET  /api/health');
+            console.log('    GET  /api/db-status');
+            console.log('    POST /api/auth/login');
+            console.log('    GET  /api/forza/status');
+            console.log('    POST /api/forza/quote');
+            console.log('    POST /api/forza/shipment');
+            console.log('    POST /api/forza/tracking');
+            console.log('    POST /api/shipments');
+            console.log('    POST /api/quotes');
+            console.log('     GET  /api/guatemala/departments');
+            console.log('     GET  /api/guatemala/municipalities');
+            console.log('    GET  /api/guatemala/villages');
             console.log('');
-            console.log('🆕 Nuevos endpoints para formulario de envíos:');
-            console.log('   📍 GET  /api/frequent-addresses');
-            console.log('   📍 POST /api/frequent-addresses');
-            console.log('   📍 PUT  /api/frequent-addresses/:id');
-            console.log('   📍 POST /api/frequent-addresses/:id/use');
-            console.log('   💳 GET  /api/payment-methods');
-            console.log('   💳 POST /api/payment-methods/calculate-fee');
-            console.log('   📦 GET  /api/package-types');
-            console.log('   📦 POST /api/package-types/validate');
-            console.log('   🚚 POST /api/shipments/create-with-validation');
-            console.log('   📍 POST /api/forza/tracking');
-            console.log('   📋 POST /api/shipments');
-            console.log('   💰 POST /api/quotes');
+            console.log(' Nuevos endpoints para formulario de envíos:');
+            console.log('    GET  /api/frequent-addresses');
+            console.log('    POST /api/frequent-addresses');
+            console.log('    PUT  /api/frequent-addresses/:id');
+            console.log('    POST /api/frequent-addresses/:id/use');
+            console.log('    GET  /api/payment-methods');
+            console.log('    POST /api/payment-methods/calculate-fee');
+            console.log('    GET  /api/package-types');
+            console.log('    POST /api/package-types/validate');
+            console.log('    POST /api/shipments/create-with-validation');
+            console.log('    POST /api/forza/tracking');
+            console.log('    POST /api/shipments');
+            console.log('    POST /api/quotes');
             console.log('');
-            console.log('🗄️  Endpoints de administración de base de datos:');
-            console.log('   📊 GET  /api/db/stats');
-            console.log('   📁 GET  /api/db/collection/:name');
-            console.log('   ➕ POST /api/db/collection/:name');
-            console.log('   ✏️  PUT  /api/db/collection/:name/:id');
-            console.log('   🗑️  DELETE /api/db/collection/:name/:id');
-            console.log(`🎨 Forza API: ${FORZA_CONFIG.enabled ? '✅ Habilitada' : '❌ Deshabilitada'}`);
-            console.log(`💾 MongoDB: ${db ? '✅ Conectada' : '❌ Desconectada'}`);
-            console.log('🚀 ===============================================');
+            console.log('  Endpoints de administración de base de datos:');
+            console.log('    GET  /api/db/stats');
+            console.log('    GET  /api/db/collection/:name');
+            console.log('    POST /api/db/collection/:name');
+            console.log('     PUT  /api/db/collection/:name/:id');
+            console.log('     DELETE /api/db/collection/:name/:id');
+            console.log(` Forza API: ${FORZA_CONFIG.enabled ? ' Habilitada' : ' Deshabilitada'}`);
+            console.log(` MongoDB: ${db ? ' Conectada' : ' Desconectada'}`);
+            console.log(' ===============================================');
             console.log('');
         });
     } catch (error) {
-        console.error('❌ Error iniciando servidor:', error);
+        console.error(' Error iniciando servidor:', error);
         process.exit(1);
     }
 }
 
 // Manejar cierre graceful
 process.on('SIGINT', async () => {
-    console.log('\n🔄 Cerrando servidor...');
+    console.log('\n Cerrando servidor...');
     try {
         await dbConfig.close();
-        console.log('📁 MongoDB desconectado');
+        console.log(' MongoDB desconectado');
     } catch (error) {
-        console.error('❌ Error cerrando MongoDB:', error.message);
+        console.error(' Error cerrando MongoDB:', error.message);
     }
     process.exit(0);
 });
 
 // Manejadores de errores no capturados
 process.on('uncaughtException', (error) => {
-    console.error('❌ Error no capturado:', error);
-    console.error('❌ Stack:', error.stack);
+    console.error(' Error no capturado:', error);
+    console.error(' Stack:', error.stack);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Promesa rechazada sin manejar:', reason);
-    console.error('❌ En promesa:', promise);
+    console.error(' Promesa rechazada sin manejar:', reason);
+    console.error(' En promesa:', promise);
 });
 
 // Iniciar servidor
 startServer();
+

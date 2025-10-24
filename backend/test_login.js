@@ -2,8 +2,8 @@ const axios = require('axios');
 
 async function testLogin() {
     try {
-        console.log('🔬 Probando endpoint de login...');
-        console.log('📡 URL: http://localhost:3005/api/auth/login');
+        console.log(' Probando endpoint de login...');
+        console.log(' URL: http://localhost:3005/api/auth/login');
         
         const response = await axios.post('http://localhost:3005/api/auth/login', {
             username: 'admin',
@@ -15,11 +15,11 @@ async function testLogin() {
             timeout: 5000
         });
         
-        console.log('✅ Login exitoso:');
+        console.log(' Login exitoso:');
         console.log(JSON.stringify(response.data, null, 2));
         
     } catch (error) {
-        console.error('❌ Error en login:');
+        console.error(' Error en login:');
         if (error.response) {
             console.error('Status:', error.response.status);
             console.error('StatusText:', error.response.statusText);

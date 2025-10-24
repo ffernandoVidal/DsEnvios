@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="login-header">
       <div class="logo-section">
-        <h1 class="app-title">📦 EnviosDS</h1>
+        <h1 class="app-title"> EnviosDS</h1>
         <p class="app-subtitle">Panel de Administración</p>
       </div>
     </div>
@@ -14,7 +14,7 @@
       <!-- Campo Correo -->
       <div class="form-group">
         <label for="correo" class="form-label">
-          <span class="label-icon">📧</span>
+          <span class="label-icon"></span>
           Correo Electrónico
         </label>
         <div class="input-wrapper">
@@ -30,14 +30,14 @@
             autocomplete="email"
             required
           >
-          <span class="input-icon">📧</span>
+          <span class="input-icon"></span>
         </div>
       </div>
 
       <!-- Campo Contraseña -->
       <div class="form-group">
         <label for="contrasena" class="form-label">
-          <span class="label-icon">🔒</span>
+          <span class="label-icon"></span>
           Contraseña
         </label>
         <div class="input-wrapper">
@@ -59,14 +59,14 @@
             (click)="togglePasswordVisibility()"
             [disabled]="isLoading"
           >
-            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+            {{ showPassword ? '' : '‍' }}
           </button>
         </div>
       </div>
 
       <!-- Mensaje de Error -->
       <div class="error-message" *ngIf="errorMessage">
-        <span class="error-icon">⚠️</span>
+        <span class="error-icon"></span>
         <span class="error-text">{{ errorMessage }}</span>
       </div>
 

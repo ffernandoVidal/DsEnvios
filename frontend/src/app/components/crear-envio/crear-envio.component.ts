@@ -660,9 +660,9 @@ export class CrearEnvioComponent implements OnInit {
       // Guardar PDF
       doc.save(`Guia_${guide.tracking_number}.pdf`);
       
-      console.log('✅ PDF de guía generado exitosamente');
+      console.log(' PDF de guía generado exitosamente');
     } catch (error) {
-      console.error('❌ Error generando PDF:', error);
+      console.error(' Error generando PDF:', error);
       alert('No se pudo generar el PDF de la guía');
     }
   }

@@ -11,7 +11,7 @@ async function createSimpleTestData() {
             database: 'enviosdb'
         });
 
-        console.log('✅ Conectado a la base de datos\n');
+        console.log(' Conectado a la base de datos\n');
 
         // Insertar guías de prueba en guia_envio
         const guiasData = [
@@ -67,14 +67,14 @@ async function createSimpleTestData() {
                         guia.costo_envio, guia.id_estado
                     ]
                 );
-                console.log(`✅ Guía creada/actualizada: ${guia.numero_guia}`);
+                console.log(` Guía creada/actualizada: ${guia.numero_guia}`);
             } catch (error) {
-                console.log(`❌ Error con ${guia.numero_guia}: ${error.message}`);
+                console.log(` Error con ${guia.numero_guia}: ${error.message}`);
             }
         }
 
         // Crear historial de tracking
-        console.log('\n📝 Creando historial de tracking...');
+        console.log('\n Creando historial de tracking...');
 
         // Para ENV-2025-001 (ENTREGADO) - historial completo
         const [guia1] = await connection.query(
@@ -101,10 +101,10 @@ async function createSimpleTestData() {
                         [idGuia1, track.id_estado, track.observaciones, track.fecha]
                     );
                 } catch (error) {
-                    console.log(`   ⚠️ Error insertando tracking: ${error.message}`);
+                    console.log(`    Error insertando tracking: ${error.message}`);
                 }
             }
-            console.log(`✅ Historial completo para ENV-2025-001`);
+            console.log(` Historial completo para ENV-2025-001`);
         }
 
         // Para ENV-2025-002 (EN_TRANSITO)
@@ -130,10 +130,10 @@ async function createSimpleTestData() {
                         [idGuia2, track.id_estado, track.observaciones, track.fecha]
                     );
                 } catch (error) {
-                    console.log(`   ⚠️ Error: ${error.message}`);
+                    console.log(`    Error: ${error.message}`);
                 }
             }
-            console.log(`✅ Historial para ENV-2025-002`);
+            console.log(` Historial para ENV-2025-002`);
         }
 
         // Para ENV-2025-003 (EN_BODEGA)
@@ -158,10 +158,10 @@ async function createSimpleTestData() {
                         [idGuia3, track.id_estado, track.observaciones, track.fecha]
                     );
                 } catch (error) {
-                    console.log(`   ⚠️ Error: ${error.message}`);
+                    console.log(`    Error: ${error.message}`);
                 }
             }
-            console.log(`✅ Historial para ENV-2025-003`);
+            console.log(` Historial para ENV-2025-003`);
         }
 
         // Para ENV-2025-004 (PENDIENTE)
@@ -179,13 +179,13 @@ async function createSimpleTestData() {
                     [idGuia4, 1, 'Envío registrado, esperando recolección']
                 );
             } catch (error) {
-                console.log(`   ⚠️ Error: ${error.message}`);
+                console.log(`    Error: ${error.message}`);
             }
-            console.log(`✅ Historial para ENV-2025-004`);
+            console.log(` Historial para ENV-2025-004`);
         }
 
-        console.log('\n🎉 Datos de prueba creados exitosamente!');
-        console.log('\n📦 Guías disponibles para rastrear:');
+        console.log('\n Datos de prueba creados exitosamente!');
+        console.log('\n Guías disponibles para rastrear:');
         console.log('   - ENV-2025-001 (Entregado)');
         console.log('   - ENV-2025-002 (En tránsito)');
         console.log('   - ENV-2025-003 (En bodega)');
@@ -193,7 +193,7 @@ async function createSimpleTestData() {
 
         await connection.end();
     } catch (error) {
-        console.error('❌ Error:', error.message);
+        console.error(' Error:', error.message);
     }
 }
 

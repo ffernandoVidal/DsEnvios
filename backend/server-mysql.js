@@ -312,42 +312,42 @@ app.get('/api/rastreo/:numeroGuia', async (req, res) => {
             {
                 nombre: 'Pendiente',
                 codigo: 'PENDIENTE',
-                icono: '📋',
+                icono: '',
                 completado: progreso.paso >= 1,
                 activo: estadoActual === 'PENDIENTE'
             },
             {
                 nombre: 'Recolectado',
                 codigo: 'RECOLECTADO',
-                icono: '📦',
+                icono: '',
                 completado: progreso.paso >= 2,
                 activo: estadoActual === 'RECOLECTADO'
             },
             {
                 nombre: 'En Bodega',
                 codigo: 'EN_BODEGA',
-                icono: '🏢',
+                icono: '',
                 completado: progreso.paso >= 3,
                 activo: estadoActual === 'EN_BODEGA'
             },
             {
                 nombre: 'En Tránsito',
                 codigo: 'EN_TRANSITO',
-                icono: '🚚',
+                icono: '',
                 completado: progreso.paso >= 4,
                 activo: estadoActual === 'EN_TRANSITO'
             },
             {
                 nombre: 'En Distribución',
                 codigo: 'EN_DISTRIBUCION',
-                icono: '🏃',
+                icono: '',
                 completado: progreso.paso >= 5,
                 activo: estadoActual === 'EN_DISTRIBUCION'
             },
             {
                 nombre: 'Entregado',
                 codigo: 'ENTREGADO',
-                icono: '✅',
+                icono: '',
                 completado: progreso.paso >= 6,
                 activo: estadoActual === 'ENTREGADO'
             }
@@ -928,15 +928,15 @@ app.use((err, req, res, next) => {
 
 // Iniciar servidor
 app.listen(PORT, async () => {
-    console.log(`🚀 Servidor ejecutándose en puerto ${PORT}`);
-    console.log(`📝 API disponible en http://localhost:${PORT}`);
+    console.log(` Servidor ejecutándose en puerto ${PORT}`);
+    console.log(` API disponible en http://localhost:${PORT}`);
     
     // Verificar conexión a la base de datos
     const dbConnected = await checkConnection();
     if (dbConnected) {
-        console.log('✅ Conexión a MySQL establecida');
+        console.log(' Conexión a MySQL establecida');
     } else {
-        console.log('❌ No se pudo conectar a MySQL');
+        console.log(' No se pudo conectar a MySQL');
     }
 });
 
